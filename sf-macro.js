@@ -1,5 +1,5 @@
 // This is a stateless macro-level API handler for the ShareFile API.
-// Adolfo Rodriguez and Keith Lindsay
+// Adolfo Rodriguez and Keith Lindsa y 
 // Trace conventions:
 //  -X-> means a message was received from X where X={C,S,B} representing {client, security server, back-end server} respectively
 
