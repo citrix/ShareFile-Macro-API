@@ -18,6 +18,9 @@ var sendfile_options = {
 
 var get_file = function(file_array, index, fileId, isFile, request, response, my_options, cookie) {
     console.log("get index: "+ index+ " array size: "+file_array.length + " isFile: " +isFile+ " fileID: " +fileId);
+
+    if (file_array[file_array.length-1] == '') // the URL ends in a '/', just ignore the last one
+	file_array.length--;
     
     if (isFile) { // we reached a file, either we return it or an error, either way we are done
 	console.log ("We reached a file!");
@@ -92,7 +95,7 @@ var get_file = function(file_array, index, fileId, isFile, request, response, my
 	    var list = JSON.parse(resultString).value;
 	    var list_result = "\"files\":[";
 	    for (i in list) {  // Repeat for every item in the folder
-		if (index == file_array.length-1) { // this is the end, buid the list of files (debug code)
+		if (index == file_array.length-1) { // this is the end, build the list of files (debug code)
 		    list_result = list_result + "{\"Name\":\"" + list[i].Name + "\"}";
 		}
 		else // we need to keep looking further in the tree
@@ -109,14 +112,18 @@ var get_file = function(file_array, index, fileId, isFile, request, response, my
 		list_result = list_result + "]"; // only for debug
 		console.log("<-C- Folder contents returned: " + list_result);
 		response.status(200);
+		response.setHeader('Access-Control-Allow-Origin', '*');
 		// response.send(list_result);
 		response.send(list);
 		return;  // we are done
 	    }
 	    else {  // there was more work to do but we didn't find where to go, return error
 		console.log("<-C- Folder or file not found: " + request.path);
+		console.log('{"code":404,"message":"Folder or file not found: ' + request.path + '","fields":" "}');
 		response.status(404);
-		response.send('Folder or file not found: ' + request.path);
+		response.setHeader('content-type', 'application/json');
+		response.setHeader('Access-Control-Allow-Origin', '*');
+		response.send('{"code":404,"message":"Folder or file not found: ' + request.path + '","fields":" "}');
 		return;  // we are done  
 	    }
 	    });
@@ -132,7 +139,6 @@ var post_file = function(file_array, index, fileId, request, response, my_option
     if (index == 1)  // fist time through, this is the home folder
 	fileId = 'home';
     my_options.path = filepath_base + 'Items(' + fileId + ')' + filepath_tail;
-
     my_options.method = 'GET';
     console.log("<-B-: " + JSON.stringify(my_options));
     

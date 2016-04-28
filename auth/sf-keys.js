@@ -1,8 +1,3 @@
-var key_context = {
-    client_id: "",
-    client_secret: "",
-    redirect: ""
-}
+// DEPRECATED
 
-exports.key_context = key_context;
 
