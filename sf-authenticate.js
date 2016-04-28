@@ -6,8 +6,12 @@
 var fs = require('fs');
 var https = require('https');
 
-var cookie_info = require('/home/azureuser/citrix/ShareFile-env/sf-cookie.js');  // used only for testing
-var test_cookie = cookie_info.cookie_context.cookie;  // used only for testing
+var test_cookie; // used only for testing
+var cookie_path = '/home/azureuser/citrix/ShareFile-env/sf-cookie.js'; // used only for testing
+if (fs.existsSync(cookie_path)) {
+    var cookie_info = require('/home/azureuser/citrix/ShareFile-env/sf-cookie.js');  // used only for testing
+    test_cookie = cookie_info.cookie_context.cookie;  // used only for testing
+}
 
 // Expects a file called 'sf-keys.js' with the following key information from ShareFile API registration:
 // var key_context = {
