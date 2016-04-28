@@ -3,7 +3,7 @@
 // Trace conventions:
 //  -X-> means a message was received from X where X={C,S,B} representing {client, security server, back-end server} respectively
 
-var token_info = require('./sf-token.js');
+var token_info = require('/home/azureuser/citrix/ShareFile-env/sf-token.js');
 var token = token_info.token_context.token;
 var http = require('http');
 
