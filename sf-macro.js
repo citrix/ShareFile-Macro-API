@@ -1,12 +1,11 @@
 // This is a stateless macro-level API handler for the ShareFile API.
-// Adolfo Rodriguez and Keith Lindsay are awesome 
+// Adolfo Rodriguez, Keith Lindsay
 // Trace conventions:
 //  -X-> means a message was received from X where X={C,S,B} representing {client, security server, back-end server} respectively
 
 var fs = require('fs');
 var express = require('express');
 var https = require('https');
-var auth_client = require("./auth/sf-auth");
 var app = express();
 var files_client = require("./endpoints/sf-files");
 var users_client = require("./endpoints/sf-users");
@@ -23,7 +22,10 @@ var my_options = {  // request options
     method: 'GET',
 };
 
-
+app.options('*', function(request, response) {
+    console.log ("-C-> OPTIONS "+request.path);
+});
+	    
 app.get('/files*', function(request, response) {
     console.log ("-C-> GET "+request.path);
     var file_array = request.path.split("/");

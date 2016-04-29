@@ -1,9 +1,9 @@
-// This client invokes the ShareFile macro API.
+// This test client invokes the ShareFile macro API.  It depends on the existence of a token file containing an authorization token in "sf-token.js".  This is is because it is impractical to redirect to an Oauth flow from a standalone node.js test client.  
 // Adolfo Rodriguez
 // Trace conventions:
 //  -X-> means a message was received from X where X={C,S,B} representing {client, security server, back-end server} respectively
 
-var token_info = require('./auth/sf-token.js');
+var token_info = require('/home/azureuser/citrix/ShareFile-env/sf-token.js');
 var token = token_info.token_context.token;
 var http = require('http');
 
