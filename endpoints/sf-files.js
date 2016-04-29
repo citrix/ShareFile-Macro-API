@@ -87,7 +87,7 @@ var get_file = function(file_array, index, fileId, isFile, request, response, my
 		    if (temp_items[0]=='SFAPI_AuthID') // carry it through
 			new_cookie = new_cookie + 'Ado=' + temp_items[1];
 		    else if (temp_items[0]==' domain') // rename the cookie and insert the domain one
-			new_cookie = new_cookie + ":" + temp_items[1] + '; domain=adolfonc.ddns.net;';
+			new_cookie = new_cookie + ":" + temp_items[1] + '; domain=.ddns.net;';
 		}
 		console.log("new cookie: "+new_cookie);
 		response.setHeader('set-cookie', new_cookie);
