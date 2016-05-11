@@ -66,7 +66,7 @@ var get_file = function(file_array, index, fileId, isFile, request, response, my
 	my_options.path = filepath_base + 'Items(home)' + filepath_tail;
     else
 	my_options.path = filepath_base + 'Items(' + fileId + ')' + filepath_tail;
-    
+
     console.log("<-B-: " + JSON.stringify(my_options));
     var list_request = https.request(my_options, function(list_response) {
 	var resultString = '';
@@ -75,7 +75,16 @@ var get_file = function(file_array, index, fileId, isFile, request, response, my
 	});
 	list_response.on('end', function (chunk) {
 	    console.log("-B->: [" + list_response.statusCode + "] : [" + JSON.stringify(list_response.headers) + "]");
-	    if (!cookie) { // need to snag cookie from response and propagte back to client
+	    if (list_response.statusCode == 401) {
+		console.log ("Attempting to clear bad cookie.");
+		var clear_cookie = 'Ado=deleted; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+		response.setHeader('set-cookie', clear_cookie);
+		response.setHeader('Access-Control-Allow-Origin', '*');
+		response.status(list_response.statusCode);
+		response.send('{"message":"Unauthorized."}');
+		return;  // we are done
+	    }
+	    if (!cookie) { // need to snag cookie from response and propagate back to client
 		var old_cookie = list_response.headers['set-cookie'][0];
 		console.log("cookie: "+old_cookie);
 		var temp_cookies = old_cookie.split(";");
@@ -88,6 +97,9 @@ var get_file = function(file_array, index, fileId, isFile, request, response, my
 			new_cookie = new_cookie + 'Ado=' + temp_items[1];
 		    else if (temp_items[0]==' domain') // rename the cookie and insert the domain one
 			new_cookie = new_cookie + ":" + temp_items[1] + '; domain=.ddns.net;';
+
+		    /// break cookie to test
+		    //  new_cookie = "Ado=garbage:blah.sf-api.com";
 		}
 		console.log("new cookie: "+new_cookie);
 		response.setHeader('set-cookie', new_cookie);
