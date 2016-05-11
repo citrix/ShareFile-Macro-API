@@ -53,27 +53,28 @@ var my_options = {  // options where security credentials will be set for downst
     method: 'GET',
 };
 
-var redirect = function(req, resp) {  // Redirects to ShareFile security site for user login. The security server redirects the user back here where the URI contains the request code for ShareFile
-    var parameters = "https://secure.sharefile.com/oauth/authorize?response_type=code&client_id="+client_id+"&redirect_uri="+redirect_url+":5000"+req.path; 
+var redirect = function(req, resp, hashcode) {  // Redirects to ShareFile security site for user login. The security server redirects the user back here where the URI contains the request code for ShareFile
+    var parameters = "https://secure.sharefile.com/oauth/authorize?response_type=code&client_id="+client_id+"&redirect_uri="+redirect_url+":5000"+req.path+'?hashcode='+hashcode ; 
     console.log ("<-C- Redirect to " + parameters);
     resp.redirect(parameters);
 };
 
-var authenticate = function(req, callback) { // Once the request code comes back in or we have a user/pass, this function will invoke the security server again to retrieve the access token
+var authenticate = function(req, hashcode, callback) { // Once the request code comes back in or we have a user/pass, this function will invoke the security server again to retrieve the access token
     var code = req.query.code;
     var username = req.query.username;
     var password = req.query.password;
     var subdomain = req.query.subdomain;
+
     get_token_options.hostname = subdomain+".sharefile.com";
 
     var get_token_data;
     if (code) {
 	console.log("-C-> authenticate_code: "+ JSON.stringify(req.query));
-	get_token_data = get_token_data_preamble_code + code + "&client_id=" + client_id + "&client_secret=" + client_secret;
+	get_token_data = get_token_data_preamble_code + code + "&client_id=" + client_id + "&client_secret=" + client_secret + "&hashcode=" + hashcode;
     }
     else {
 	console.log("-C-> authenticate_userpass: "+ JSON.stringify(req.query));
-	get_token_data = get_token_data_preamble_userpass + username + "&password=" + password + "&client_id=" + client_id + "&client_secret=" + client_secret;
+	get_token_data = get_token_data_preamble_userpass + username + "&password=" + password + "&client_id=" + client_id + "&client_secret=" + client_secret + "&hashcode=" + hashcode;
     }	
      
     console.log("Sending token get request: " + get_token_data);
@@ -135,7 +136,7 @@ var set_security = function (request, response, my_options, callback) {
     
     if (!code && !token && !cookie && !username) {  // case A
 	console.log("Case A: Initiating login sequence");
-	redirect (request, response);
+	redirect (request, response, my_options.hashcode);
     }
     else {  // cases B, C, D or E
 	if (cookie) {  // case E
@@ -166,8 +167,10 @@ var set_security = function (request, response, my_options, callback) {
 		}
 		else { // case B
 		    console.log("Case B: User: " + username + " and Password: " + password);
+		    
+
 		}
-		authenticate(request, function(result) {
+		authenticate(request, my_options.hashcode, function(result) {
 		    var token = JSON.parse(result).access_token;
 		    var this_host = os.hostname();
 		    console.log("Local hostname is " + this_host);
@@ -182,7 +185,8 @@ var set_security = function (request, response, my_options, callback) {
 		    console.log("Received token via auth flow: "+token);
 		    my_options.headers = {  // same for all invocations
 			'Host': subdomain + '.sf-api.com',
-			'Authorization': 'Bearer '+token
+			'Authorization': 'Bearer '+token,
+			'Content-Type' : 'application/json'
 		    }
 		    callback (my_options, cookie);
 		});
