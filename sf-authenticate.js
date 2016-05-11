@@ -119,8 +119,17 @@ var set_security = function (request, response, my_options, callback) {
     var password = request.query.password;
     
     if (request.headers.cookie) {
-	var temp_cookies = (request.headers.cookie).split("Ado="); 
-	cookie = temp_cookies[1];
+	var temp_cookies = (request.headers.cookie).split("Ado=");
+	if (temp_cookies.length == 2) {
+	    var val_cookie = (temp_cookies[1]).split(':');
+	    if (val_cookie.length == 2) {
+		var val2_cookie = (val_cookie[1]).split('.sf-api.com');
+		if (val2_cookie.length == 2) // string ends in '.sf-api.com' 
+		    cookie = temp_cookies[1];
+	    }
+	}
+	if (!cookie)
+	    console.log ("Bad cookie found: "+request.headers.cookie);
     }
     else if (test_cookie) {
 	console.log("Using test cookie: "+test_cookie);
@@ -148,6 +157,7 @@ var set_security = function (request, response, my_options, callback) {
 		'Host': subdomain,
 		'Cookie': 'SFAPI_AuthID='+cookie
 	    }
+	    my_options.hostname = subdomain + '.sf-api.com';	    
 	    callback (my_options, cookie);
 	}
 	else { // case B, C or D
@@ -158,6 +168,7 @@ var set_security = function (request, response, my_options, callback) {
 		    'Host': subdomain,
 		    'Authorization': 'Bearer '+token
 		}
+		my_options.hostname = subdomain + '.sf-api.com';
 		callback (my_options, cookie);
 	    }
 	    else {  // cases B or C
@@ -188,6 +199,7 @@ var set_security = function (request, response, my_options, callback) {
 			'Authorization': 'Bearer '+token,
 			'Content-Type' : 'application/json'
 		    }
+		    my_options.hostname = subdomain + '.sf-api.com';
 		    callback (my_options, cookie);
 		});
 	    }
