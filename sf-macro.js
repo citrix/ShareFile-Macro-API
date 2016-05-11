@@ -71,6 +71,72 @@ function retrieveBodyWithHash(hashcode) {
     return json_info.toString();
 }
 
+app.all('/*', function(req, res) {
+
+    my_options.hashcode = generateFileHash(req);
+    sfauth.set_security (req, res, my_options, function(set_options, cookie) {
+        set_options.method = retrieveMethodWithHash(set_options.hashcode);
+        var body = retrieveBodyWithHash(set_options.hashcode);
+        console.log(JSON.parse(body));
+        if (body) {
+            set_options.headers['Content-Length'] = Buffer.byteLength(body);
+
+        }
+        var url_path = '/sf/v3' + req.url;
+        console.log(url_path);
+        set_options.path = url_path
+        console.log("<-B-: " + JSON.stringify(set_options));
+        var api_request = https.request(set_options, function(api_response) {
+            console.log(api_response.statusCode);
+            api_response.on('data', function (d){
+                res.setHeader('Access-Control-Allow-Origin', '*');
+                res.end(d);
+            });
+        });
+        if (body) {
+            api_request.write(body);
+        }
+        api_request.end();
+        return;
+    });
+});
+
+app.all('/*/:id', function(req, res) {
+    console.log(req.body  );
+    my_options.hashcode = generateFileHash(req);
+    sfauth.set_security (req, res, my_options, function(set_options, cookie) {
+        var id = req.params.id;
+        var req_array = req.path.split("/");
+        var sub_nav = "";
+        if (req_array[3]) {
+            sub_nav = "/" + req_array[3];
+        }
+        set_options.method = retrieveMethodWithHash(set_options.hashcode);
+        var body = retrieveBodyWithHash(set_options.hashcode);
+        console.log(JSON.parse(body));
+        if (body) {
+            set_options.headers['Content-Length'] = Buffer.byteLength(body);
+        }
+        var url_path = '/sf/v3/' + req_array[1] + '(' + id + ')' + sub_nav;
+        console.log(url_path);
+        set_options.path = url_path
+       //set_options.hostname = set_options.headers.Host;                                                                                
+        console.log("<-B-: " + JSON.stringify(set_options));
+
+        var api_request = https.request(set_options, function(api_response) {
+            console.log(api_response.statusCode);
+            api_response.on('data', function (d){
+                res.setHeader('Access-Control-Allow-Origin', '*');
+                res.end(d);
+            });
+        });
+        if (body) {
+            api_request.write(body);
+        }
+        api_request.end();
+        return;
+    });
+});
 	    
 app.get('/files*', function(request, response) {
     console.log ("-C-> GET "+request.path);
@@ -132,73 +198,6 @@ app.get('/users*', function(request, response) {
     }
 });
 
-app.all('/*/:id', function(req, res) {
-    console.log(req.body  );
-    my_options.hashcode = generateFileHash(req);
-    sfauth.set_security (req, res, my_options, function(set_options, cookie) {
-        var id = req.params.id;
-        var req_array = req.path.split("/");
-        var sub_nav = "";
-        if (req_array[3]) {
-            sub_nav = "/" + req_array[3];
-        }
-        set_options.method = retrieveMethodWithHash(set_options.hashcode);
-        var body = retrieveBodyWithHash(set_options.hashcode);
-        console.log(JSON.parse(body));
-        if (body) {
-            set_options.headers['Content-Length'] = Buffer.byteLength(body);
-        }
-        var url_path = '/sf/v3/' + req_array[1] + '(' + id + ')' + sub_nav;
-        console.log(url_path);
-        set_options.path = url_path
-       //set_options.hostname = set_options.headers.Host;                                                                                 
-        console.log("<-B-: " + JSON.stringify(set_options));
-
-        var api_request = https.request(set_options, function(api_response) {
-            console.log(api_response.statusCode);
-            api_response.on('data', function (d){
-                res.setHeader('Access-Control-Allow-Origin', '*');
-                res.end(d);
-            });
-        });
-        if (body) {
-            api_request.write(body);
-        }
-        api_request.end();
-        return;
-    });
-});
-
-
-app.all('/*', function(req, res) {
-
-    my_options.hashcode = generateFileHash(req);
-    sfauth.set_security (req, res, my_options, function(set_options, cookie) {
-        set_options.method = retrieveMethodWithHash(set_options.hashcode);
-        var body = retrieveBodyWithHash(set_options.hashcode);
-        console.log(JSON.parse(body));
-        if (body) {
-            set_options.headers['Content-Length'] = Buffer.byteLength(body);
-
-        }
-        var url_path = '/sf/v3' + req.url;
-        console.log(url_path);
-        set_options.path = url_path
-        console.log("<-B-: " + JSON.stringify(set_options));
-        var api_request = https.request(set_options, function(api_response) {
-            console.log(api_response.statusCode);
-            api_response.on('data', function (d){
-                res.setHeader('Access-Control-Allow-Origin', '*');
-                res.end(d);
-            });
-        });
-        if (body) {
-            api_request.write(body);
-        }
-        api_request.end();
-        return;
-    });
-});
 
 app.listen(app.get('port'), function() {
     console.log("Node app is running at localhost:" + app.get('port'));
