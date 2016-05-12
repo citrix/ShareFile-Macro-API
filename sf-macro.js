@@ -71,13 +71,46 @@ function retrieveBodyWithHash(hashcode) {
     return json_info.toString();
 }
 
+app.get('/files*', function(request, response) {
+    console.log ("-C-> GET "+request.path);
+    var file_array = request.path.split("/");
+
+    // Note: the first element in the array should be '' since the string starts with a '/'                                               
+    if (file_array[1] != 'files') {  // error, some funky request came in                                                                 
+        console.log("<-C- File not found: " + request.path);
+        response.status(404);
+        response.send('Not Found: ' + request.path);
+        return;
+    }
+
+    sfauth.set_security (request, response, my_options, function(set_options, cookie) {
+        files_client.get_file (file_array, 1, '', false, request, response, set_options, cookie);
+    });
+});
+
+app.post('/files*', function(request, response) {
+    console.log ("-C-> POST "+request.path);
+    var file_array = request.path.split("/");
+
+    // Note: the first element in the array should be '' since the string starts with a '/'                                               
+    if (file_array[1] != 'files') {  // error, some funky request came in                                                                 
+        console.log("<-C- Destination not valid: " + request.path);
+        response.status(404);
+        response.send('Not Found: ' + request.path);
+        return;
+    }
+
+    sfauth.set_security (request, response, my_options, function(set_options, cookie) {
+        files_client.post_file (file_array, 1, '', request, response, set_options, cookie);
+    });
+});
+
 app.all('/*', function(req, res) {
 
     my_options.hashcode = generateFileHash(req);
     sfauth.set_security (req, res, my_options, function(set_options, cookie) {
         set_options.method = retrieveMethodWithHash(set_options.hashcode);
         var body = retrieveBodyWithHash(set_options.hashcode);
-        console.log(JSON.parse(body));
         if (body) {
             set_options.headers['Content-Length'] = Buffer.byteLength(body);
 
@@ -135,40 +168,6 @@ app.all('/*/:id', function(req, res) {
         }
         api_request.end();
         return;
-    });
-});
-	    
-app.get('/files*', function(request, response) {
-    console.log ("-C-> GET "+request.path);
-    var file_array = request.path.split("/");
-    
-    // Note: the first element in the array should be '' since the string starts with a '/'
-    if (file_array[1] != 'files') {  // error, some funky request came in
-	console.log("<-C- File not found: " + request.path);
-	response.status(404);
-	response.send('Not Found: ' + request.path);
-	return;
-    }
-
-    sfauth.set_security (request, response, my_options, function(set_options, cookie) {
-	files_client.get_file (file_array, 1, '', false, request, response, set_options, cookie);
-    });
-});
-
-app.post('/files*', function(request, response) {
-    console.log ("-C-> POST "+request.path);
-    var file_array = request.path.split("/");
-    
-    // Note: the first element in the array should be '' since the string starts with a '/'
-    if (file_array[1] != 'files') {  // error, some funky request came in
-	console.log("<-C- Destination not valid: " + request.path);
-	response.status(404);
-	response.send('Not Found: ' + request.path);
-	return;
-    }
-
-    sfauth.set_security (request, response, my_options, function(set_options, cookie) {
-	files_client.post_file (file_array, 1, '', request, response, set_options, cookie);
     });
 });
 
