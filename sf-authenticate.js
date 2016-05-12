@@ -13,6 +13,17 @@ if (fs.existsSync(cookie_path)) {
     var cookie_info = require('/home/azureuser/citrix/ShareFile-env/sf-cookie.js');  // used only for testing
     test_cookie = cookie_info.cookie_context.cookie;  // used only for testing
 }
+var test_user; // used only for testing
+var test_pw; // used only for testing
+var test_domain; // used only for testing
+var creds_path = '/home/azureuser/citrix/ShareFile-env/sf-creds.js'; // used only for testing
+if (fs.existsSync(creds_path)) {
+    var creds_info = require('/home/azureuser/citrix/ShareFile-env/sf-creds.js');  // used only for testing
+    test_user = creds_info.creds_context.user;  // used only for testing
+    test_pw = creds_info.creds_context.pw;  // used only for testing
+    test_domain = creds_info.creds_context.domain; // used only for testing
+}
+
 
 // Expects a file called 'sf-keys.js' with the following key information from ShareFile API registration:
 // var key_context = {
@@ -118,7 +129,7 @@ var set_security = function (request, response, my_options, callback) {
     var username = request.query.username;
     var password = request.query.password;
     
-    if (request.headers.cookie) {
+    if (request.headers.cookie) {  // If there is a cookie, make sure it is valid
 	var temp_cookies = (request.headers.cookie).split("Ado=");
 	if (temp_cookies.length == 2) {
 	    var val_cookie = (temp_cookies[1]).split(':');
@@ -134,6 +145,16 @@ var set_security = function (request, response, my_options, callback) {
     else if (test_cookie) {
 	console.log("Using test cookie: "+test_cookie);
 	cookie = test_cookie;
+    }
+
+    if (test_user) { // There is user/pw info in the local env
+	request.query.username = username = test_user;
+	request.query.password = password = test_pw;
+	request.query.subdomain = test_domain;
+	console.log ("Overriding user/pw information with local: " + username + "/" + password);
+	if (cookie)
+	    console.log ("Ignoring any sent cookies");
+	cookie = '';  // ignore any sent cookie
     }
     
     if (request.headers['authorization']) {
