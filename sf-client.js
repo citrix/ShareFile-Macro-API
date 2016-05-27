@@ -6,8 +6,9 @@
 var token_info = require('/home/azureuser/citrix/ShareFile-env/sf-token.js');
 var token = token_info.token_context.token;
 var http = require('http');
+var querystring = require('querystring');
 
-var message='Probando otro mensaje guey!';
+var message='Probando otro mensaje guey May 25!';
 var msg_len=message.length;
 
 var post_options = {
@@ -18,7 +19,7 @@ var post_options = {
 	'Content-Type': 'text/plain',    // It's plain-text
 	'Content-Length': msg_len
     },
-    path: '/files/sample.txt'
+    path: '/files/'+querystring.escape('My Files & Folders')+ '/sample.txt',
 };
 
 var get_options = {
@@ -29,13 +30,16 @@ var get_options = {
 };
 
 get_options.headers = {
-    'host': 'adolfo.sf-api.com',
-    'authorization': 'Bearer: '+token,
+    'Host': 'adolfo.sf-api.com',
+    'Authorization': 'Bearer: '+token,
 }
 post_options.headers = {
-    'host': 'adolfo.sf-api.com',
-    'authorization': 'Bearer: '+token,
+    'Host': 'adolfo.sf-api.com',
+    'Authorization': 'Bearer: '+token,
 }
+
+console.log("Starting client post of file using token " + token);
+console.log("<-B-: " + JSON.stringify(post_options));
 
 // put a simple file in ShareFile
 var sf_request = http.request(post_options, function(sf_response) {
