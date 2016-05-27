@@ -51,6 +51,7 @@ var set_cookie = function(response, old_cookie) {
 	/// break cookie to test
 	// new_cookie = "Ado=garbage:blah.sf-api.com; domain=.ddns.net";
     }
+    new_cookie += 'path=/'; // apply to the whole site
     console.log("new cookie: "+new_cookie);
     response.setHeader('set-cookie', new_cookie);
 }
@@ -62,11 +63,11 @@ var get_file = function(file_array, request, response, my_options, cookie) {
     // 2) Prepares the file for download
     // 3) Downloads the file and streams it back to the client
 
-    // console.log("get_file array size: "+file_array.length);
+    console.log("get_file array size: "+file_array.length);
 
     var MetadataExplicit = false;
     var MatadataRequest = false;
-    console.log ("meatadata query parm: " + request.query.metadata);
+    // console.log ("meatadata query parm: " + request.query.metadata);
     if (request.query.metadata == "true" || request.query.metadata == "1" || request.query.metadata == "True" || request.query.metadata == "TRUE") {
 	console.log ("Metadata requested on.");
 	MetadataExplicit = true;
@@ -79,6 +80,7 @@ var get_file = function(file_array, request, response, my_options, cookie) {
     }
     
     var item_options = my_options;
+    var possible_fileId = false;
     
     if (file_array[file_array.length-1] == '') // the URL ends in a '/'
 	file_array.length--; // just ignore the last one
@@ -88,6 +90,11 @@ var get_file = function(file_array, request, response, my_options, cookie) {
 	console.log("Accessing home directory");
     }
     else {
+	if (file_array.length==3) { // might be a file identifier, check
+	    // console.log("Is this a file id? "+file_array[2]);
+	    if((file_array[2].split("-")).length==5 && file_array[2].length==36) // yes, the format looks like a possible file id
+		possible_fileId = true;
+	}
 	// remove the leading '/files' and stringify the name
 	var trunc_path = querystring.escape(querystring.unescape(request.path.substring(6)));
 	item_options.path = itempath_byPath + trunc_path;
@@ -96,7 +103,11 @@ var get_file = function(file_array, request, response, my_options, cookie) {
 
     var item_request = https.request(item_options, function(item_response) {
 	console.log("-B->: [" + item_response.statusCode + "] : [" + JSON.stringify(item_response.headers) + "]");
-	if (item_response.statusCode != 200) {
+
+	var try_fileId = '';
+	if (possible_fileId && item_response.statusCode == 404) { // this might be a file ID, try pulling it
+	    try_fileId = file_array[2];
+	} else if (item_response.statusCode != 200) {
 	    var err_msg = 'Unrecognized internal error';
 	    if (item_response.statusCode == 401) {
 		if (request.headers.cookie) // a cookie was passed in
@@ -122,9 +133,14 @@ var get_file = function(file_array, request, response, my_options, cookie) {
 	    var item_buffer = Buffer.concat(item_contents);
 	    console.log("Response from item complete: " +item_buffer);
 
-	    // We have the item metadata, determine if it's a folder or a file
-	    var item_result = JSON.parse(item_buffer);
-	    var item_id = item_result.Id;
+	    var item_id;
+	    
+	    if (try_fileId)
+		item_id = try_fileId;
+	    else {
+		var item_result = JSON.parse(item_buffer);
+		item_id = item_result.Id;
+	    }
 	    console.log("Item id is " + item_id);
 
 	    // Default behavior is different if we have a folder (default to return metadata) or a file (default to return contents)
