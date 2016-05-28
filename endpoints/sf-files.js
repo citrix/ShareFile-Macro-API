@@ -29,7 +29,7 @@ var send_error = function(response, status, message, fields) {
 }
 
 var clear_cookie = function(response) {
-    var clear_cookie = 'Ado=deleted; domain=.ddns.net; expires='+Date.now();
+    var clear_cookie = 'Ado=deleted; domain=.ddns.net; path=/; expires='+Date.now();
     console.log ("Attempting to clear bad cookie by setting it to: "+clear_cookie);
     response.setHeader('set-cookie', clear_cookie);
     response.setHeader('Access-Control-Allow-Origin', '*');
@@ -51,7 +51,7 @@ var set_cookie = function(response, old_cookie) {
 	/// break cookie to test
 	// new_cookie = "Ado=garbage:blah.sf-api.com; domain=.ddns.net";
     }
-    new_cookie += 'path=/'; // apply to the whole site
+    new_cookie += 'path=/;'; // apply to the whole site
     console.log("new cookie: "+new_cookie);
     response.setHeader('set-cookie', new_cookie);
 }
@@ -63,7 +63,7 @@ var get_file = function(file_array, request, response, my_options, cookie) {
     // 2) Prepares the file for download
     // 3) Downloads the file and streams it back to the client
 
-    console.log("get_file array size: "+file_array.length);
+    // console.log("get_file array size: "+file_array.length);
 
     var MetadataExplicit = false;
     var MatadataRequest = false;
