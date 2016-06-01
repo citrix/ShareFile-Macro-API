@@ -64,13 +64,20 @@ var my_options = {  // options where security credentials will be set for downst
     method: 'GET',
 };
 
-var redirect = function(req, resp, hashcode) {  // Redirects to ShareFile security site for user login. The security server redirects the user back here where the URI contains the request code for ShareFile
+//setup cache connection
+var crypto = require("crypto");
+var redis = require("redis"),
+    redclient = redis.createClient({ port:5001});
+
+var redirect = function(req, resp) {  // Redirects to ShareFile security site for user login. The security server redirects the user back here where the URI contains the request code for ShareFile
+    //if we are redirecting we need to cache the request info 
+    var hashcode = generateCacheHash(req);
     var parameters = "https://secure.sharefile.com/oauth/authorize?response_type=code&client_id="+client_id+"&redirect_uri="+redirect_url+":5000"+req.path+'?hashcode='+hashcode ; 
     console.log ("<-C- Redirect to " + parameters);
     resp.redirect(parameters);
 };
 
-var authenticate = function(req, hashcode, callback) { // Once the request code comes back in or we have a user/pass, this function will invoke the security server again to retrieve the access token
+var authenticate = function(req, callback) { // Once the request code comes back in or we have a user/pass, this function will invoke the security server again to retrieve the access token
     var code = req.query.code;
     var username = req.query.username;
     var password = req.query.password;
@@ -81,11 +88,11 @@ var authenticate = function(req, hashcode, callback) { // Once the request code 
     var get_token_data;
     if (code) {
 	console.log("-C-> authenticate_code: "+ JSON.stringify(req.query));
-	get_token_data = get_token_data_preamble_code + code + "&client_id=" + client_id + "&client_secret=" + client_secret + "&hashcode=" + hashcode;
+	get_token_data = get_token_data_preamble_code + code + "&client_id=" + client_id + "&client_secret=" + client_secret;
     }
     else {
 	console.log("-C-> authenticate_userpass: "+ JSON.stringify(req.query));
-	get_token_data = get_token_data_preamble_userpass + username + "&password=" + password + "&client_id=" + client_id + "&client_secret=" + client_secret + "&hashcode=" + hashcode;
+	get_token_data = get_token_data_preamble_userpass + username + "&password=" + password + "&client_id=" + client_id + "&client_secret=" + client_secret;
     }	
      
     console.log("Sending token get request: " + get_token_data);
@@ -202,7 +209,7 @@ var set_security = function (request, response, my_options, callback) {
 		    
 
 		}
-		authenticate(request, my_options.hashcode, function(result) {
+		authenticate(request, function(result) {
 		    var token = JSON.parse(result).access_token;
 		    var this_host = os.hostname();
 		    console.log("Local hostname is " + this_host);
@@ -226,6 +233,24 @@ var set_security = function (request, response, my_options, callback) {
 	    }
 	}
     }
+}
+
+function generateCacheHash(req){
+    var current_date = (new Date()).valueOf().toString();
+    var random = Math.random().toString();
+    var hashcode = crypto.createHash('sha1').update(current_date + random).digest('hex');
+    if (req.query.hashcode){
+        console.log(hashcode);
+        hashcode = req.query.hashcode;
+    } else {
+        var json_key = hashcode +'-json';
+        var method_key = hashcode +'-method';
+        //preserve body information for after authentication                                                                                     
+        redclient.set(method_key, req.method);
+        redclient.set(json_key, JSON.stringify(req.body));
+    }
+
+    return hashcode;
 }
 
 module.exports = {
