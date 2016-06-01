@@ -6,6 +6,10 @@
 var fs = require('fs');
 var https = require('https');
 var os = require("os");
+var querystring = require("querystring");
+
+var this_host = os.hostname();
+console.log("Local hostname is " + this_host);
 
 var test_cookie; // used only for testing
 var cookie_path = '/home/azureuser/citrix/ShareFile-env/sf-cookie.js'; // used only for testing
@@ -16,13 +20,7 @@ if (fs.existsSync(cookie_path)) {
 var test_user; // used only for testing
 var test_pw; // used only for testing
 var test_domain; // used only for testing
-var creds_path = '/home/azureuser/citrix/ShareFile-env/sf-creds.js'; // used only for testing
-if (fs.existsSync(creds_path)) {
-    var creds_info = require('/home/azureuser/citrix/ShareFile-env/sf-creds.js');  // used only for testing
-    test_user = creds_info.creds_context.user;  // used only for testing
-    test_pw = creds_info.creds_context.pw;  // used only for testing
-    test_domain = creds_info.creds_context.domain; // used only for testing
-}
+var creds_path = '/home/azureuser/citrix/ShareFile-env/sf-creds.js'; // used only for testing (and default account in prod)
 
 
 // Expects a file called 'sf-keys.js' with the following key information from ShareFile API registration:
@@ -57,22 +55,31 @@ var get_token_options = {
     }
 };
 
-var my_options = {  // options where security credentials will be set for downstream usage by specific API calls 
-    hostname: 'zzzz.sf-api.com',
-    port: '443',
-    path: '',
-    method: 'GET',
-};
-
 //setup cache connection
 var crypto = require("crypto");
 var redis = require("redis"),
     redclient = redis.createClient({ port:5001});
 
-var redirect = function(req, resp) {  // Redirects to ShareFile security site for user login. The security server redirects the user back here where the URI contains the request code for ShareFile
-    //if we are redirecting we need to cache the request info 
-    var hashcode = generateCacheHash(req);
-    var parameters = "https://secure.sharefile.com/oauth/authorize?response_type=code&client_id="+client_id+"&redirect_uri="+redirect_url+":5000"+req.path+'?hashcode='+hashcode ; 
+//var my_options = {  // options where security credentials will be set for downstream usage by specific API calls 
+//    hostname: 'zzzz.sf-api.com',
+ //   port: '443',
+  //  path: '',
+  //  method: 'GET',
+//};
+
+var redirect = function(req, resp, hashcode, new_path) {  // Redirects to ShareFile security site for user login. The security server redirects the user back here where the URI contains the request code for ShareFile
+    var my_query = '';
+    if (hashcode)
+	my_query +='hashcode='+hashcode;
+    if (req.query.metadata) {
+	if (my_query)
+	    my_query += '&';
+	else
+	    my_query += '?';
+	my_query += 'metadata='+req.query.metadata;
+    }
+	
+    var parameters = "https://secure.sharefile.com/oauth/authorize?response_type=code&client_id="+client_id+"&redirect_uri="+redirect_url+":5000"+new_path+my_query; 
     console.log ("<-C- Redirect to " + parameters);
     resp.redirect(parameters);
 };
@@ -121,7 +128,7 @@ var authenticate = function(req, callback) { // Once the request code comes back
     request.end();
 };
 
-var set_security = function (request, response, my_options, callback) {
+var set_security = function (request, response, my_options, new_path, callback) {
     // TODO: Deal with token and cookie expirations
     // There are several cases to consider:
     // A) First time through, there is no access code, authorization token, cookie or  username/passsword to identify the user
@@ -135,6 +142,17 @@ var set_security = function (request, response, my_options, callback) {
     var cookie = '';
     var username = request.query.username;
     var password = request.query.password;
+
+    if (fs.existsSync(creds_path)) {
+	var creds_info = require(creds_path);  
+	test_user = creds_info.creds_context.user; 
+	test_pw = creds_info.creds_context.pw; 
+	test_domain = creds_info.creds_context.domain;
+    } else {
+	test_user = '';
+	test_pw = '';
+	test_domain = '';
+    }
     
     if (request.headers.cookie) {  // If there is a cookie, make sure it is valid
 	var temp_cookies = (request.headers.cookie).split("Ado=");
@@ -154,26 +172,23 @@ var set_security = function (request, response, my_options, callback) {
 	cookie = test_cookie;
     }
 
-    if (test_user) { // There is user/pw info in the local env
-	request.query.username = username = test_user;
-	request.query.password = password = test_pw;
-	request.query.subdomain = test_domain;
-	console.log ("Overriding user/pw information with local: " + username + "/" + password);
-	if (cookie)
-	    console.log ("Ignoring any sent cookies");
-	cookie = '';  // ignore any sent cookie
-    }
-    
     if (request.headers['authorization']) {
 	var temp = request.headers['authorization'];
 	token = temp.split(" ")[1];  // token has a preface of 'Bearer: '
-	console.log("Received token via header: "+token);
-	console.log("Full header: "+temp);
+	// console.log("Received token via header: "+token);
+	// console.log("Full header: "+temp);
+    }
+
+    if (!code && !token && !cookie && !username && test_user) { // special case where nothing was passed but we have a local test_user creds, this is in the common case in prod; this results in a case B flow
+	request.query.username = username = test_user;
+	request.query.password = password = test_pw;
+	request.query.subdomain = test_domain;
+	console.log ("Overriding user/pw information with local: " + username + "/" + password); 
     }
     
-    if (!code && !token && !cookie && !username) {  // case A
+    if (!code && !token && !cookie && !username) { // case A
 	console.log("Case A: Initiating login sequence");
-	redirect (request, response, my_options.hashcode);
+	redirect (request, response, my_options.hashcode, new_path);
     }
     else {  // cases B, C, D or E
 	if (cookie) {  // case E
@@ -185,7 +200,7 @@ var set_security = function (request, response, my_options, callback) {
 		'Host': subdomain,
 		'Cookie': 'SFAPI_AuthID='+cookie
 	    }
-	    my_options.hostname = subdomain + '.sf-api.com';	    
+	    my_options.hostname = subdomain;	    
 	    callback (my_options, cookie);
 	}
 	else { // case B, C or D
@@ -206,13 +221,12 @@ var set_security = function (request, response, my_options, callback) {
 		}
 		else { // case B
 		    console.log("Case B: User: " + username + " and Password: " + password);
-		    
-
+		    if (test_user) { // If we used locally stored creds, don't send a cookie back
+			cookie = 'Cookie not returned on locally used user/pass';
+		    }
 		}
 		authenticate(request, function(result) {
 		    var token = JSON.parse(result).access_token;
-		    var this_host = os.hostname();
-		    console.log("Local hostname is " + this_host);
 		    if (this_host != 'adolfo-ubuntu2') { // exclude the production server, don't save tokens there
 			var token_json = "var token_context = { token: \"" + token + "\"}; exports.token_context = token_context; // This file is automatically generated by sf-authenticate.js for use by sf-client.js for testing.  It should never be checked into Github.  Confidential.";
 			fs.writeFile("/home/azureuser/citrix/ShareFile-env/sf-token.js", token_json, function(err) {

@@ -6,6 +6,7 @@
 var fs = require('fs');
 var express = require('express');
 var https = require('https');
+var querystring = require('querystring');
 var app = express();
 var files_client = require("./endpoints/sf-files");
 var users_client = require("./endpoints/sf-users");
@@ -82,37 +83,58 @@ function capitalizeFirstLetter(string) {
 }
 
 
+function buildNewPath(file_array) {
+    var new_path = '';
+    for (var i=1; i< file_array.length; i++) {
+	// console.log ("Processing element "+i+ ":" + file_array[i]);
+	var replace_val = querystring.escape(querystring.unescape(file_array[i]));
+	if (file_array[i] != replace_val) {
+	    console.log ("Replacing " + file_array[i] + " with " + replace_val);
+	    file_array[i] = replace_val;
+	}
+	new_path = new_path + '/'+file_array[i];
+    }
+    return new_path;
+}
+
+
 app.get('/files*', function(request, response) {
     console.log ("-C-> GET "+request.path);
     var file_array = request.path.split("/");
-
-    // Note: the first element in the array should be '' since the string starts with a '/'                                               
-    if (file_array[1] != 'files') {  // error, some funky request came in                                                                 
+    var new_path = buildNewPath(file_array);
+    request.path = new_path;
+    console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
+    
+    // Note: the first element in the array should be '' since the string starts with a '/'        
+    if (file_array[1] != 'files') {  // error, some funky request came in
         console.log("<-C- File not found: " + request.path);
         response.status(404);
         response.send('Not Found: ' + request.path);
         return;
     }
 
-    sfauth.set_security (request, response, my_options, function(set_options, cookie) {
-        files_client.get_file (file_array, 1, '', false, request, response, set_options, cookie);
+    sfauth.set_security (request, response, my_options, new_path, function(set_options, cookie) {
+        files_client.get_file (file_array, request, response, set_options, cookie);
     });
 });
 
 app.post('/files*', function(request, response) {
     console.log ("-C-> POST "+request.path);
     var file_array = request.path.split("/");
+    var new_path = buildNewPath(file_array);
+    request.path = new_path;
+    console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
 
-    // Note: the first element in the array should be '' since the string starts with a '/'                                               
-    if (file_array[1] != 'files') {  // error, some funky request came in                                                                 
-        console.log("<-C- Destination not valid: " + request.path);
+    // Note: the first element in the array should be '' since the string starts with a '/'
+    if (file_array[1] != 'files') {  // error, some funky request came in
+	console.log("<-C- Destination not valid: " + request.path);
         response.status(404);
         response.send('Not Found: ' + request.path);
         return;
     }
 
-    sfauth.set_security (request, response, my_options, function(set_options, cookie) {
-        files_client.post_file (file_array, 1, '', request, response, set_options, cookie);
+    sfauth.set_security (request, response, my_options, new_path, function(set_options, cookie) {
+        files_client.post_file (file_array, request, response, set_options, cookie);
     });
 });
 
