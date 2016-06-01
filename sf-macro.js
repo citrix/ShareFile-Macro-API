@@ -129,7 +129,7 @@ app.post('/files*', function(request, response) {
 app.all('/*', function(req, res) {
 
     my_options.hashcode = generateFileHash(req);
-    sfauth.set_security (req, res, my_options, function(set_options, cookie) {
+    sfauth.set_security (req, res, my_options, req.path, function(set_options, cookie) {
         set_options.method = retrieveMethodWithHash(set_options.hashcode);
         var body = retrieveBodyWithHash(set_options.hashcode);
         if (body) {
@@ -158,7 +158,7 @@ app.all('/*', function(req, res) {
 app.all('/*/:id', function(req, res) {
     console.log(req.body  );
     my_options.hashcode = generateFileHash(req);
-    sfauth.set_security (req, res, my_options, function(set_options, cookie) {
+    sfauth.set_security (req, res, my_options, req.path, function(set_options, cookie) {
         var id = req.params.id;
         var req_array = req.path.split("/");
         var sub_nav = "";
@@ -206,13 +206,13 @@ app.get('/users*', function(request, response) {
     
     if (typeof user_array[2] !== 'undefined' && user_array[2] ) {
 	var user_id = user_array[2];
-	sfauth.set_security (request, response, my_options, function(set_options, cookie) {
+	sfauth.set_security (request, response, my_options, request.path, function(set_options, cookie) {
             users_client.get_user (user_id, request, response, set_options, cookie);
 	});
 
     } else {
 	var user_type = request.query.userType;
-	sfauth.set_security (request, response, my_options, function(set_options, cookie) {
+	sfauth.set_security (request, response, my_options, request.path, function(set_options, cookie) {
             users_client.get_user_list (user_type, request, response, set_options, cookie);
 	});
     }
