@@ -16,7 +16,7 @@ var bodyParser = require('body-parser');
 var crypto = require("crypto");
 var redis = require("redis"),
     redclient = redis.createClient({ port:5001});
-
+var beautify = require("js-beautify").js_beautify;
 
 app.set('port', (process.env.PORT || 5000));
 app.use(express.static(__dirname + '/public'));
@@ -138,39 +138,11 @@ app.post('/files*', function(request, response) {
     });
 });
 
-app.all('/*', function(req, res) {
-
-    sfauth.set_security (req, res, my_options, '',  function(set_options, cookie) {
-        set_options.method = retrieveMethod(req);
-        var body = retrieveBody(req);
-        if (body) {
-            set_options.headers['Content-Length'] = Buffer.byteLength(body);
-
-        }
-	var entity = capitalizeFirstLetter(req.url);
-        var url_path = '/sf/v3' + entity;
-        console.log(url_path);
-        set_options.path = url_path
-        console.log("<-B-: " + JSON.stringify(set_options));
-        var api_request = https.request(set_options, function(api_response) {
-            console.log(api_response.statusCode);
-            api_response.on('data', function (d){
-                res.setHeader('Access-Control-Allow-Origin', '*');
-                res.end(d);
-            });
-        });
-        if (body) {
-            api_request.write(body);
-        }
-        api_request.end();
-        return;
-    });
-});
 
 app.all('/*/:id', function(req, res) {
 
-    console.log(req.body  );
-    sfauth.set_security (req, res, my_options, '', function(set_options, cookie) {
+    console.log(req.path);
+    sfauth.set_security (req, res, my_options, req.url, function(set_options, cookie) {
         var id = req.params.id;
         var req_array = req.path.split("/");
         var sub_nav = "";
@@ -179,29 +151,79 @@ app.all('/*/:id', function(req, res) {
         }
         set_options.method = retrieveMethod(req);
         var body = retrieveBody(req);
-        console.log(JSON.parse(body));
+       
         if (body) {
             set_options.headers['Content-Length'] = Buffer.byteLength(body);
         }
 	var entity = capitalizeFirstLetter(req_array[1]);
         var url_path = '/sf/v3/' + entity + '(' + id + ')' + sub_nav;
-        console.log(url_path);
+        console.log("ID: " + id);
+	console.log(url_path);
         set_options.path = url_path
        //set_options.hostname = set_options.headers.Host;                                                                                
         console.log("<-B-: " + JSON.stringify(set_options));
-
+       
         var api_request = https.request(set_options, function(api_response) {
-            console.log(api_response.statusCode);
-            api_response.on('data', function (d){
-                res.setHeader('Access-Control-Allow-Origin', '*');
-                res.end(d);
+	    var resultString = "";
+	    console.log(api_response.statusCode);
+            api_response.on('data', function (chunk) {
+                resultString+=chunk;
             });
+            api_response.on('end', function (chunk) {
+                console.log("-B->: [" + api_response.statusCode + "] : [" + JSON.stringify(api_response.headers) + "]");
+
+
+                res.setHeader('Access-Control-Allow-Origin', '*');
+                res.status(200);
+                res.setHeader('content-type', 'application/json');
+                res.send(beautify(resultString));
+                res.end();
+            });       
         });
         if (body) {
             api_request.write(body);
         }
         api_request.end();
 
+        return;
+    });
+});
+
+app.all('/*', function(req, res) {
+
+    sfauth.set_security (req, res, my_options, req.url, function(set_options, cookie) {
+        set_options.method = retrieveMethod(req);
+        var body = retrieveBody(req);
+        if (body) {
+            set_options.headers['Content-Length'] = Buffer.byteLength(body);
+
+        }
+        var entity = capitalizeFirstLetter(req.url);
+        var url_path = '/sf/v3' + entity;
+        console.log(url_path);
+        set_options.path = url_path
+        console.log("<-B-: " + JSON.stringify(set_options));
+        var resultString = "";
+        var api_request = https.request(set_options, function(api_response) {
+            console.log(api_response.statusCode);
+            api_response.on('data', function (chunk) {
+                        resultString+=chunk;
+                    });
+            api_response.on('end', function (chunk) {
+                console.log("-B->: [" + api_response.statusCode + "] : [" + JSON.stringify(api_response.headers) + "]");
+
+
+                res.setHeader('Access-Control-Allow-Origin', '*');
+                res.status(200);
+                res.setHeader('content-type', 'application/json');
+                res.send(beautify(resultString));
+                res.end();
+            });
+        });
+        if (body) {
+            api_request.write(body);
+        }
+        api_request.end();
         return;
     });
 });
