@@ -26,7 +26,7 @@ var my_options = {  // request options
 };
 
 app.options('*', function(request, response) {
-    console.log ("-C-> OPTIONS "+request.path);
+    console.log ("-C-> OPTIONS "+request.path+" ["+JSON.stringify(request.headers)+"]");
 });
 
 app.use(bodyParser.urlencoded({ extended: true }));
