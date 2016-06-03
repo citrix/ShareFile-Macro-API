@@ -67,18 +67,21 @@ var redis = require("redis"),
   //  method: 'GET',
 //};
 
-var redirect = function(req, resp, hashcode, new_path) {  // Redirects to ShareFile security site for user login. The security server redirects the user back here where the URI contains the request code for ShareFile
+var redirect = function(req, resp,  new_path) {  
+// Redirects to ShareFile security site for user login. The security server redirects the user back here where the URI contains the request code for ShareFile
     var my_query = '';
-    if (hashcode)
-	my_query +='hashcode='+hashcode;
+    var hashcode = generateCacheHash(req);
+  
+    if (my_query)
+	my_query += '&';
+    else
+	my_query += '?';
     if (req.query.metadata) {
-	if (my_query)
-	    my_query += '&';
-	else
-	    my_query += '?';
 	my_query += 'metadata='+req.query.metadata;
+	my_query += '&';
     }
-	
+    if (hashcode)
+        my_query +='hashcode='+hashcode;	
     var parameters = "https://secure.sharefile.com/oauth/authorize?response_type=code&client_id="+client_id+"&redirect_uri="+redirect_url+":5000"+new_path+my_query; 
     console.log ("<-C- Redirect to " + parameters);
     resp.redirect(parameters);
@@ -188,7 +191,7 @@ var set_security = function (request, response, my_options, new_path, callback) 
     
     if (!code && !token && !cookie && !username) { // case A
 	console.log("Case A: Initiating login sequence");
-	redirect (request, response, my_options.hashcode, new_path);
+	redirect (request, response, new_path);
     }
     else {  // cases B, C, D or E
 	if (cookie) {  // case E
