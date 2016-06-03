@@ -311,7 +311,7 @@ var post_file = function(file_array, request, response, my_options, cookie) {
 		    console.log("<-B-: "+JSON.stringify(upload_options));
 		    var ul_request = https.request(upload_options, function(ul_response) {
 			console.log("-B->: [" + ul_response.statusCode + "] : [" + JSON.stringify(ul_response.headers) + "]");
-			if (list_response.statusCode != 200) {
+			if (ul_response.statusCode != 200) {
 			    var err_msg = 'Unrecognized internal error';
 			    send_error(response, list_response.statusCode, err_msg);
 			    return;  // we are done
@@ -338,7 +338,7 @@ var post_file = function(file_array, request, response, my_options, cookie) {
 			    console.log("<-B-: " + JSON.stringify(sendfile_options));
 			    var sf_request = https.request(sendfile_options, function(sf_response) {
 				console.log("-B->: [" + sf_response.statusCode + "] : [" + JSON.stringify(sf_response.headers) + "]");
-				if (list_response.statusCode != 200) {
+				if (sf_response.statusCode != 200) {
 				    var err_msg = 'Unrecognized internal error';
 				    send_error(response, list_response.statusCode, err_msg);
 				    return;  // we are done
