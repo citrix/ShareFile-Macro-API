@@ -176,7 +176,7 @@ var set_security = function (request, response, my_options, new_path, callback) 
 
     var check_local_creds = false;
     if (this_host == 'adolfo-ubuntu2') { // in, prod, only use local test user creds if coming from Swagger
-	if (request.query.swagger != yes) {
+	if (request.query.swagger != "yes") {
 	    console.log ("We are in prod server and the swagger flag is not on");
 	    test_user = '';
 	}
