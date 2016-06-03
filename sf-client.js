@@ -8,7 +8,7 @@ var token = token_info.token_context.token;
 var http = require('http');
 var querystring = require('querystring');
 
-var message='Probando otro mensaje guey May 25!';
+var message='This message for is for Chris and whoever else might care!';
 var msg_len=message.length;
 
 var post_options = {
