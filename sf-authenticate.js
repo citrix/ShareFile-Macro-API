@@ -89,11 +89,11 @@ var authenticate = function(req, hashcode, callback) { // Once the request code 
 
     var get_token_data;
     if (code) {
-	console.log("-C-> authenticate_code: "+ JSON.stringify(req.query));
+	console.log("authenticate_code: "+ JSON.stringify(req.query));
 	get_token_data = get_token_data_preamble_code + code + "&client_id=" + client_id + "&client_secret=" + client_secret + "&hashcode=" + hashcode;
     }
     else {
-	console.log("-C-> authenticate_userpass: "+ JSON.stringify(req.query));
+	console.log("authenticate_userpass: "+ JSON.stringify(req.query));
 	get_token_data = get_token_data_preamble_userpass + username + "&password=" + password + "&client_id=" + client_id + "&client_secret=" + client_secret + "&hashcode=" + hashcode;
     }	
      

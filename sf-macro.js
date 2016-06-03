@@ -127,7 +127,7 @@ app.post('/files*', function(request, response) {
 });
 
 app.all('/*', function(req, res) {
-
+    console.log ("-C-> ALL "+request.path);
     my_options.hashcode = generateFileHash(req);
     sfauth.set_security (req, res, my_options, req.path, function(set_options, cookie) {
         set_options.method = retrieveMethodWithHash(set_options.hashcode);
@@ -156,7 +156,8 @@ app.all('/*', function(req, res) {
 });
 
 app.all('/*/:id', function(req, res) {
-    console.log(req.body  );
+    console.log ("-C-> ALL2 "+request.path);    
+    console.log(req.body);
     my_options.hashcode = generateFileHash(req);
     sfauth.set_security (req, res, my_options, req.path, function(set_options, cookie) {
         var id = req.params.id;
