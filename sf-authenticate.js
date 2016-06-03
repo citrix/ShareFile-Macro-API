@@ -58,7 +58,7 @@ var get_token_options = {
 //setup cache connection
 var crypto = require("crypto");
 var redis = require("redis"),
-    redclient = redis.createClient({ port:5001});
+    redclient = redis.createClient({host: '40.76.75.177', port:5001});
 
 //var my_options = {  // options where security credentials will be set for downstream usage by specific API calls 
 //    hostname: 'zzzz.sf-api.com',
