@@ -97,11 +97,11 @@ var authenticate = function(req, callback) { // Once the request code comes back
 
     var get_token_data;
     if (code) {
-	console.log("-C-> authenticate_code: "+ JSON.stringify(req.query));
+	console.log("authenticate_code: "+ JSON.stringify(req.query));
 	get_token_data = get_token_data_preamble_code + code + "&client_id=" + client_id + "&client_secret=" + client_secret;
     }
     else {
-	console.log("-C-> authenticate_userpass: "+ JSON.stringify(req.query));
+	console.log("authenticate_userpass: "+ JSON.stringify(req.query));
 	get_token_data = get_token_data_preamble_userpass + username + "&password=" + password + "&client_id=" + client_id + "&client_secret=" + client_secret;
     }	
      
@@ -182,6 +182,14 @@ var set_security = function (request, response, my_options, new_path, callback) 
 	// console.log("Full header: "+temp);
     }
 
+    var check_local_creds = false;
+    if (this_host == 'adolfo-ubuntu2') { // in, prod, only use local test user creds if coming from Swagger
+	if (request.query.swagger != "yes") {
+	    console.log ("We are in prod server and the swagger flag is not on");
+	    test_user = '';
+	}
+    }
+	
     if (!code && !token && !cookie && !username && test_user) { // special case where nothing was passed but we have a local test_user creds, this is in the common case in prod; this results in a case B flow
 	request.query.username = username = test_user;
 	request.query.password = password = test_pw;

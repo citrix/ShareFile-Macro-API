@@ -168,6 +168,7 @@ app.all('/*', function(req, res) {
 });
 
 app.all('/*/:id', function(req, res) {
+
     console.log(req.body  );
     sfauth.set_security (req, res, my_options, '', function(set_options, cookie) {
         var id = req.params.id;
