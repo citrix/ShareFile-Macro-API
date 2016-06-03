@@ -127,7 +127,7 @@ app.post('/files*', function(request, response) {
 });
 
 app.all('/*', function(req, res) {
-    console.log ("-C-> ALL "+request.path);
+    console.log ("-C-> ALL "+req.path);
     my_options.hashcode = generateFileHash(req);
     sfauth.set_security (req, res, my_options, req.path, function(set_options, cookie) {
         set_options.method = retrieveMethodWithHash(set_options.hashcode);
