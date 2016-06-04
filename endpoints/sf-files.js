@@ -395,7 +395,7 @@ var post_file = function(file_array, request, response, my_options, cookie) {
 				    console.log ("Received this remote file contents: "+file);
 				
 				send_file(file_array, file, my_options, item_id); // send it!
-				send_message(reponse, 200, "Got it!");
+				send_message(response, 200, "Got it!");
 			    });
 			});
 			file_request.end();
@@ -404,7 +404,7 @@ var post_file = function(file_array, request, response, my_options, cookie) {
 			    console.log ("Received this message from client: "+file);
 			
 			send_file(file_array, file, my_options, item_id); // send it!
-			send_message(reponse, 200, "Got it!");
+			send_message(response, 200, "Got it!");
 		    }
 		});
 	    } else {
