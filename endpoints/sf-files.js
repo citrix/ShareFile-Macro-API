@@ -223,14 +223,16 @@ var get_file = function(file_array, request, response, my_options, cookie) {
 			console.log("-B->: [" + file_response.statusCode + "] : [" + JSON.stringify(file_response.headers) + "]");
 			response.setHeader('content-type', file_response.headers['content-type']);
 			response.setHeader('content-disposition', file_response.headers['content-disposition']);
+			response.setHeader('Transfer-Encoding', 'chunked');
 			
-			var file_contents = [];
+			// var file_contents = [];
 			file_response.on('data', function (chunk) {
-			    file_contents.push(chunk);
+			    // file_contents.push(chunk);
+			    response.write(chunk);
 			});
 			file_response.on('end', function(chunk) {
-			    var buffer = Buffer.concat(file_contents);
-			    response.send(buffer);
+			    // var buffer = Buffer.concat(file_contents);
+			    // response.send(buffer);
 			    response.end();
 			});
 		    });
@@ -243,6 +245,57 @@ var get_file = function(file_array, request, response, my_options, cookie) {
     item_request.end();
 }
 
+var send_file = function(file_array, file, my_options, item_id) {
+    var upload_options = my_options;
+    upload_options.path = itempath_byID + item_id +')/Upload?method=standard&raw=1&fileName='+file_array[file_array.length-1]+'&fileSize='+file.length;
+    upload_options.method = 'POST';
+    console.log("<-B-: "+JSON.stringify(upload_options));
+    var ul_request = https.request(upload_options, function(ul_response) {
+	console.log("-B->: [" + ul_response.statusCode + "] : [" + JSON.stringify(ul_response.headers) + "]");
+	if (ul_response.statusCode != 200) {
+	    var err_msg = 'Unrecognized internal error';
+	    send_error(response, list_response.statusCode, err_msg);
+	    return;  // we are done
+	}
+	var response_data = "";
+	ul_response.setEncoding('utf8');
+	ul_response.on('data', function (chunk) {
+	    response_data = response_data + chunk;
+	});
+	ul_response.on('end', function() {
+	    // console.log('Response: ' + response_data);
+	    chunkUri = JSON.parse(response_data).ChunkUri + '&raw=1&fileName='+file_array[file_array.length-1];
+	    console.log('Chunk URI: ' + chunkUri);
+	    var myurl = url.parse(chunkUri);
+	    var sendfile_options = my_options;
+	    
+	    sendfile_options.path = myurl.path;
+	    sendfile_options.hostname = myurl.hostname;
+	    sendfile_options.headers = {
+		'Content-Type': 'text/plain',    // It's plain-text
+		'Content-Length': file.length
+	    }
+	    
+	    console.log("<-B-: " + JSON.stringify(sendfile_options));
+	    var sf_request = https.request(sendfile_options, function(sf_response) {
+		console.log("-B->: [" + sf_response.statusCode + "] : [" + JSON.stringify(sf_response.headers) + "]");
+		if (sf_response.statusCode != 200) {
+		    var err_msg = 'Unrecognized internal error';
+		    send_error(response, list_response.statusCode, err_msg);
+		    return;  // we are done
+		}
+		sf_response.setEncoding('utf8');
+		sf_response.on('data', function(chunk) {
+		    console.log('Response: ' + chunk);
+		});
+	    });
+	    sf_request.write(file);
+	    sf_request.end();
+	});
+    });
+    ul_request.end();
+}
+
 var post_file = function(file_array, request, response, my_options, cookie) {
     // This function does the following things:
     // 1) Finds the parent directory by path
@@ -252,6 +305,14 @@ var post_file = function(file_array, request, response, my_options, cookie) {
     // console.log("post array size: "+file_array.length);
 
     var item_options = my_options;
+    var possible_fileId = false;
+    var remote_url = request.query.url;
+    
+    if (file_array.length==4) { // might be a file identifier, check
+	console.log("Is this a file id? "+file_array[2]);
+	if((file_array[2].split("-")).length==5 && file_array[2].length==36) // yes, the format looks like a possible file id
+	    possible_fileId = true;
+    }
     
     if (file_array.length < 4) { // file has to have a name, the first element is empty, the second is 'files', and the third must be a high level folder like 'My Files & Folders'
 	response.status(404);
@@ -272,7 +333,10 @@ var post_file = function(file_array, request, response, my_options, cookie) {
     
     var item_request = https.request(item_options, function(item_response) {
 	console.log("-B->: [" + item_response.statusCode + "] : [" + JSON.stringify(item_response.headers) + "]");
-	if (item_response.statusCode != 200) {
+	var try_fileId = '';
+	if (possible_fileId && item_response.statusCode == 404) { // this might be a file ID, try pulling it
+	    try_fileId = file_array[2];
+	} else if (item_response.statusCode != 200) {
 	    var err_msg = 'Unrecognized internal error';
 	    if (item_response.statusCode == 401) {
 		if (request.headers.cookie) // a cookie was passed in 
@@ -284,6 +348,10 @@ var post_file = function(file_array, request, response, my_options, cookie) {
 	    send_error(response, item_response.statusCode, err_msg);
 	    return;  // we are done
 	}
+
+	if (!cookie) { // need to snag cookie from response and propagate back to client
+	    set_cookie(response, item_response.headers['set-cookie'][0]);
+	}
 	
 	var resultString = '';
 	item_response.on('data', function (chunk) {
@@ -291,8 +359,14 @@ var post_file = function(file_array, request, response, my_options, cookie) {
 	});
 	item_response.on('end', function (chunk) {
 	    console.log (resultString);
-	    var item_result = JSON.parse(resultString);
-	    var item_id = item_result.Id;
+	    var item_id;
+
+	    if (try_fileId)
+		item_id = try_fileId;
+	    else {
+		var item_result = JSON.parse(resultString);
+		item_id = item_result.Id;
+	    }
 	    console.log("Item id is " + item_id);
 	    
 	    if (item_id.indexOf('fo')==0) { // this is a folder, we can just upload here
@@ -303,59 +377,42 @@ var post_file = function(file_array, request, response, my_options, cookie) {
 		    file += data;
 		});
 		request.on('end', function() {
-		    console.log ("Received this message from client: "+file);
-
-		    var upload_options = my_options;
-		    upload_options.path = itempath_byID + item_id +')/Upload?method=standard&raw=1&fileName='+file_array[file_array.length-1]+'&fileSize='+file.length;
-		    upload_options.method = 'POST';
-		    console.log("<-B-: "+JSON.stringify(upload_options));
-		    var ul_request = https.request(upload_options, function(ul_response) {
-			console.log("-B->: [" + ul_response.statusCode + "] : [" + JSON.stringify(ul_response.headers) + "]");
-			if (ul_response.statusCode != 200) {
-			    var err_msg = 'Unrecognized internal error';
-			    send_error(response, list_response.statusCode, err_msg);
-			    return;  // we are done
-			}
-			var response_data = "";
-			ul_response.setEncoding('utf8');
-			ul_response.on('data', function (chunk) {
-			    response_data = response_data + chunk;
-			});
-			ul_response.on('end', function() {
-			    // console.log('Response: ' + response_data);
-			    chunkUri = JSON.parse(response_data).ChunkUri + '&raw=1&fileName='+file_array[file_array.length-1];
-			    console.log('Chunk URI: ' + chunkUri);
-			    var myurl = url.parse(chunkUri);
-			    var sendfile_options = my_options;
-
-			    sendfile_options.path = myurl.path;
-			    sendfile_options.hostname = myurl.hostname;
-			    sendfile_options.headers = {
-				'Content-Type': 'text/plain',    // It's plain-text
-				'Content-Length': file.length
-			    }
-
-			    console.log("<-B-: " + JSON.stringify(sendfile_options));
-			    var sf_request = https.request(sendfile_options, function(sf_response) {
-				console.log("-B->: [" + sf_response.statusCode + "] : [" + JSON.stringify(sf_response.headers) + "]");
-				if (sf_response.statusCode != 200) {
-				    var err_msg = 'Unrecognized internal error';
-				    send_error(response, list_response.statusCode, err_msg);
-				    return;  // we are done
-				}
-				sf_response.setEncoding('utf8');
-				sf_response.on('data', function(chunk) {
-				    console.log('Response: ' + chunk);
-				});
+		    if (remote_url) {  // we should ignore the posted body and just fetch contents from the remote url
+			console.log("Remote url specified: "+remote_url);
+			var myurl = url.parse(remote_url);
+			file_options.hostname = myurl.hostname;
+			file_options.path = myurl.path;
+			console.log("<-B-: " + JSON.stringify(file_options));
+			var file_request = https.request(file_options, function(file_response) {
+			    console.log("-B->: [" + file_response.statusCode + "] : [" + JSON.stringify(file_response.headers) + "]");
+			    var file_contents = [];
+			    file_response.on('data', function (chunk) {
+				file_contents.push(chunk);
 			    });
-			    sf_request.write(file);
-			    sf_request.end();
+			    file_response.on('end', function(chunk) {
+				var buffer = Buffer.concat(file_contents);
+				file = buffer;
+				if (file.length < 50) // only record it in the log if it is small
+				    console.log ("Received this remote file contents: "+file);
+				
+				send_file(file_array, file, my_options, item_id); // send it!
+				response.status(200);
+				response.send("Got it!");
+			    });
 			});
-		    });
-		    response.status(200);
-		    response.send("Got it!");
-		    ul_request.end();
+			file_request.end();
+		    } else {
+			if (file.length < 50) // only record it in the log if it is small
+			    console.log ("Received this message from client: "+file);
+			
+			send_file(file_array, file, my_options, item_id); // send it!
+			response.status(200);
+			response.send("Got it!");
+		    }
 		});
+	    } else {
+		var err_msg = 'Referenced parent folder was a file: ' + querystring.unescape(request.path);
+		send_error(response, 404, err_msg);
 	    }
 	});
     });
