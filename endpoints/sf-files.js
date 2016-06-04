@@ -17,15 +17,15 @@ var file_options = {
     method: 'GET',
 };
 
-var send_error = function(response, status, message, fields) {
+var send_message = function(response, status, message, fields) {
     if (!fields)
 	fields = "";
     response.status(status);
     response.setHeader('content-type', 'application/json');
     response.setHeader('Access-Control-Allow-Origin', '*');
-    var err_msg = '{"code":'+status+',"message":"'+message+'","fields":"'+fields+'"}';
-    console.log("<-C- " + err_msg);
-    response.send(beautify(err_msg));
+    var send_msg = '{"code":'+status+',"message":"'+message+'","fields":"'+fields+'"}';
+    console.log("<-C- " + send_msg);
+    response.send(beautify(send_msg));
 }
 
 var clear_cookie = function(response) {
@@ -116,7 +116,7 @@ var get_file = function(file_array, request, response, my_options, cookie) {
 	    } else if (item_response.statusCode == 404) {
 		err_msg = 'Folder or file not found: ' + querystring.unescape(request.path);
 	    }
-	    send_error(response, item_response.statusCode, err_msg);
+	    send_message(response, item_response.statusCode, err_msg);
 	    return;  // we are done
 	}
 
@@ -169,9 +169,10 @@ var get_file = function(file_array, request, response, my_options, cookie) {
 		
 		console.log("<-B-: " + JSON.stringify(list_options));
 		var list_request = https.request(list_options, function(list_response) {
+		    console.log("-B->: [" + list_response.statusCode + "] : [" + JSON.stringify(list_response.headers) + "]");
 		    if (list_response.statusCode != 200) {
 			var err_msg = 'Unrecognized internal error';
-			send_error(response, list_response.statusCode, err_msg);
+			send_message(response, list_response.statusCode, err_msg);
 			return;  // we are done
 		    }
 		    
@@ -180,8 +181,6 @@ var get_file = function(file_array, request, response, my_options, cookie) {
 			resultString+=chunk;
 		    });
 		    list_response.on('end', function (chunk) {
-			console.log("-B->: [" + list_response.statusCode + "] : [" + JSON.stringify(list_response.headers) + "]");
-
 			if (item_id.indexOf('fo')==0) {  // it's a folder
 			    var list = JSON.parse(resultString).value;
 			    // var list_result = "\"files\":["; // for debug
@@ -211,7 +210,7 @@ var get_file = function(file_array, request, response, my_options, cookie) {
 		    console.log("-B->: [" + dl_response.statusCode + "] : [" + JSON.stringify(dl_response.headers) + "]");
 		    if (dl_response.statusCode != 200 && dl_response.statusCode != 302) { // redirection ok here
 			var err_msg = 'Unrecognized internal error';
-			send_error(response, dl_response.statusCode, err_msg);
+			send_message(response, dl_response.statusCode, err_msg);
 			return;  // we are done
 		    }
 			
@@ -254,7 +253,7 @@ var send_file = function(file_array, file, my_options, item_id) {
 	console.log("-B->: [" + ul_response.statusCode + "] : [" + JSON.stringify(ul_response.headers) + "]");
 	if (ul_response.statusCode != 200) {
 	    var err_msg = 'Unrecognized internal error';
-	    send_error(response, list_response.statusCode, err_msg);
+	    send_message(response, list_response.statusCode, err_msg);
 	    return;  // we are done
 	}
 	var response_data = "";
@@ -281,7 +280,7 @@ var send_file = function(file_array, file, my_options, item_id) {
 		console.log("-B->: [" + sf_response.statusCode + "] : [" + JSON.stringify(sf_response.headers) + "]");
 		if (sf_response.statusCode != 200) {
 		    var err_msg = 'Unrecognized internal error';
-		    send_error(response, list_response.statusCode, err_msg);
+		    send_message(response, list_response.statusCode, err_msg);
 		    return;  // we are done
 		}
 		sf_response.setEncoding('utf8');
@@ -317,7 +316,7 @@ var post_file = function(file_array, request, response, my_options, cookie) {
     if (file_array.length < 4) { // file has to have a name, the first element is empty, the second is 'files', and the third must be a high level folder like 'My Files & Folders'
 	response.status(404);
 	var err_msg = "Invalid file path.";
-	send_error(response, 404, err_msg, request.path);
+	send_message(response, 404, err_msg, request.path);
 	return;  // we are done
     }
     
@@ -345,7 +344,7 @@ var post_file = function(file_array, request, response, my_options, cookie) {
 	    } else if (item_response.statusCode == 404) {
 		err_msg = 'Folder or file not found: ' + querystring.unescape(request.path);
 	    }
-	    send_error(response, item_response.statusCode, err_msg);
+	    send_message(response, item_response.statusCode, err_msg);
 	    return;  // we are done
 	}
 
@@ -396,8 +395,7 @@ var post_file = function(file_array, request, response, my_options, cookie) {
 				    console.log ("Received this remote file contents: "+file);
 				
 				send_file(file_array, file, my_options, item_id); // send it!
-				response.status(200);
-				response.send("Got it!");
+				send_message(reponse, 200, "Got it!");
 			    });
 			});
 			file_request.end();
@@ -406,13 +404,12 @@ var post_file = function(file_array, request, response, my_options, cookie) {
 			    console.log ("Received this message from client: "+file);
 			
 			send_file(file_array, file, my_options, item_id); // send it!
-			response.status(200);
-			response.send("Got it!");
+			send_message(reponse, 200, "Got it!");
 		    }
 		});
 	    } else {
 		var err_msg = 'Referenced parent folder was a file: ' + querystring.unescape(request.path);
-		send_error(response, 404, err_msg);
+		send_message(response, 404, err_msg);
 	    }
 	});
     });
