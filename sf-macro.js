@@ -15,7 +15,7 @@ var sfauth = require("./sf-authenticate");
 var bodyParser = require('body-parser');
 var crypto = require("crypto");
 var redis = require("redis"),
-    redclient = redis.createClient({host: '40.76.75.177', port:5001});
+    redclient = redis.createClient({ port:5001});
 var beautify = require("js-beautify").js_beautify;
 
 app.set('port', (process.env.PORT || 5000));
