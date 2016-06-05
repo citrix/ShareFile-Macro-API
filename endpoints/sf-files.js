@@ -9,6 +9,7 @@ var itempath_byPath = '/sf/v3/Items/ByPath?path=';
 
 var folderpath_tail = '/Children?includeDeleted=false'  // include all children in items call
 var downloadpath_tail =')/Download?includeallversions=false';
+var delete_tail=')?singleversion=false&forceSync=false';
 
 var file_options = {
     hostname: 'zzzz.sf-api.com',  // this is over-written at runtime
@@ -17,15 +18,23 @@ var file_options = {
     method: 'GET',
 };
 
-var send_message = function(response, status, message, fields) {
+var send_message = function(response, status, message, fields, skipWrap) {
+    var send_msg;
     if (!fields)
 	fields = "";
     response.status(status);
     response.setHeader('content-type', 'application/json');
     response.setHeader('Access-Control-Allow-Origin', '*');
-    var send_msg = '{"code":'+status+',"message":"'+message+'","fields":"'+fields+'"}';
-    console.log("<-C- " + send_msg);
+    if (skipWrap)
+	send_msg = message;
+    else
+	send_msg = '{"code":'+status+',"message":"'+message+'","fields":"'+fields+'"}';
+    if (send_msg.length < 80)
+	console.log("<-C- " + send_msg);
+    else
+	console.log("<-C- " +send_msg.substring(0,60) + " [Message Truncated]");
     response.send(beautify(send_msg));
+    response.end();
 }
 
 var clear_cookie = function(response) {
@@ -54,6 +63,115 @@ var set_cookie = function(response, old_cookie) {
     new_cookie += 'path=/;'; // apply to the whole site
     console.log("new cookie: "+new_cookie);
     response.setHeader('set-cookie', new_cookie);
+}
+
+
+var delete_file = function(file_array, new_path, request, response, my_options, cookie) {
+    // This function does the following things:
+    // 1) Finds the Item by path
+    // 2) Deletes the file by ID
+
+    // console.log("get_file array size: "+file_array.length);
+    
+    var item_options = my_options;
+    var possible_fileId = false;
+    
+    if (file_array[file_array.length-1] == '') // the URL ends in a '/'
+	file_array.length--; // just ignore the last one
+    
+    if (file_array.length==2) { // special case to handle the home directory
+	var err_msg = 'Cannot delete the home directory';
+	send_message(response, 500, err_msg);
+	return;
+    }
+    else {
+	if (file_array.length==3) { // might be a file identifier, check
+	    // console.log("Is this a file id? "+file_array[2]);
+	    if((file_array[2].split("-")).length==5 && file_array[2].length==36) // yes, the format looks like a possible file id
+		possible_fileId = true;
+	}
+	// remove the leading '/files' and stringify the name
+	var trunc_path = querystring.escape(querystring.unescape(new_path.substring(6)));
+	item_options.path = itempath_byPath + trunc_path;
+    }
+    console.log("<-B-: " + JSON.stringify(item_options));
+    
+    var item_request = https.request(item_options, function(item_response) {
+	console.log("-B->: [" + item_response.statusCode + "] : [" + JSON.stringify(item_response.headers) + "]");
+	
+	var try_fileId = '';
+	if (possible_fileId && item_response.statusCode == 404) { // this might be a file ID, try pulling it
+	    try_fileId = file_array[2];
+	} else if (item_response.statusCode != 200) {
+	    var err_msg = 'Unrecognized internal error';
+	    if (item_response.statusCode == 401) {
+		if (request.headers.cookie) // a cookie was passed in
+		    clear_cookie(response);
+		err_msg = 'Unauthorized access';
+	    } else if (item_response.statusCode == 404) {
+		err_msg = 'Folder or file not found: ' + querystring.unescape(request.path);
+	    }
+	    send_message(response, item_response.statusCode, err_msg);
+	    return;  // we are done
+	}
+	
+	if (!cookie) { // need to snag cookie from response and propagate back to client
+	    set_cookie(response, item_response.headers['set-cookie'][0]);
+	}
+	
+	var item_contents = [];
+
+	item_response.on('data', function (chunk) {
+	    item_contents.push(chunk);
+	    console.log("Got some item data:" + chunk);
+	});
+	item_response.on('end', function (chunk) {
+	    var item_buffer = Buffer.concat(item_contents);
+	    console.log("Response from item complete: " +item_buffer);
+	    
+	    var item_id;
+	    
+	    if (try_fileId)
+		item_id = try_fileId;
+	    else {
+		var item_result = JSON.parse(item_buffer);
+		item_id = item_result.Id;
+	    }
+	    console.log("Item id is " + item_id);
+
+	    // delete it if it's a file
+	    var delete_options = my_options;
+	    delete_options.method = 'DELETE';
+	    if (item_id.indexOf('fo')==0) {   // it's a folder, abort
+		var err_msg = 'Cannot delete folder';
+		send_message(response, 500, err_msg);
+		return;  // we are done                                   
+	    }
+	    else // it's a file
+		delete_options.path = itempath_byID + item_id + delete_tail;
+
+	    console.log("<-B-: " + JSON.stringify(delete_options));
+	    var delete_request = https.request(delete_options, function(delete_response) {
+		console.log("-B->: [" + delete_response.statusCode + "] : [" + JSON.stringify(delete_response.headers) + "]");
+		if (delete_response.statusCode != 200 && delete_response.statusCode != 204 ) { // 204 is ok
+		    var err_msg = 'Unrecognized internal error';
+		    send_message(response, delete_response.statusCode, err_msg);
+		    return;  // we are done
+		}
+
+		var resultString = '';
+		delete_response.on('data', function (chunk) {
+		    resultString+=chunk;
+		});
+		delete_response.on('end', function (chunk) {
+		    send_message(response, 200, "File deleted");
+		    return;  // we are done
+		});
+	    });
+	    delete_request.end();
+	});
+    });
+    item_request.end();
 }
 
 
@@ -188,14 +306,10 @@ var get_file = function(file_array, new_path, request, response, my_options, coo
 			    // list_result = list_result + "{\"Name\":\"" + list[i].Name + "\"}"; // for debug
 			    // } // for debug
 			    // list_result = list_result + "]"; // for debug
-			    console.log("<-C- Folder contents returned " + list.length + " elements");
+			    console.log("Folder contents returned " + list.length + " elements");
 			    // console.log(beautify(list_result));
 			}
-			response.status(200);
-			response.setHeader('content-type', 'application/json');
-			response.setHeader('Access-Control-Allow-Origin', '*');
-			response.send(beautify(resultString));
-			response.end();
+			send_message(response, 200, beautify(resultString), '', true);
 			return;  // we are done
 		    });
 		});
@@ -417,6 +531,7 @@ var post_file = function(file_array, new_path, request, response, my_options, co
 }
 
 module.exports = {
+    delete_file: delete_file,
     get_file: get_file,
     post_file: post_file
 }

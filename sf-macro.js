@@ -36,21 +36,6 @@ var my_options = {  // request options
     method: 'GET',
 };
 
-app.options('*', function(request, response) {
-    console.log ("-C-> OPTIONS "+request.path+" ["+JSON.stringify(request.headers)+"]");
-
-    response.status(200);
-    response.setHeader('Access-Control-Allow-Origin', '*');
-    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
-    response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
-    response.setHeader('Access-Control-Max-Age', 10);
-    response.setHeader('Accept-Language', 'en-US');
-    response.setHeader('Content-Type', 'application/json');
-    console.log("<-C- OPTIONS");
-    response.send();
-    response.end();
-});
-
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -119,9 +104,23 @@ function buildNewPath(request_path) {
     return new_path;
 }
 
+app.options('*', function(request, response) {
+    console.log ("-C-> OPTIONS "+request.path+" ["+JSON.stringify(request.headers)+"]");
 
-app.get('/files*', function(request, response) {
-    console.log ("-C-> GET "+request.path);
+    response.status(200);
+    response.setHeader('Access-Control-Allow-Origin', '*');
+    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+    response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
+    response.setHeader('Access-Control-Max-Age', 10);
+    response.setHeader('Accept-Language', 'en-US');
+    response.setHeader('Content-Type', 'application/json');
+    console.log("<-C- OPTIONS");
+    response.send();
+    response.end();
+});
+
+app.all('/files*', function(request, response) {
+    console.log ("-C-> "+request.method+" "+request.path);
 
     var new_path = buildNewPath(request.path);
     console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
@@ -137,31 +136,14 @@ app.get('/files*', function(request, response) {
     }
 
     sfauth.set_security (request, response, my_options, new_path, function(set_options, cookie) {
-        files_client.get_file (file_array, new_path, request, response, set_options, cookie);
+	if (request.method == 'DELETE')
+            files_client.delete_file (file_array, new_path, request, response, set_options, cookie);
+	else if (request.method == 'GET')
+	    files_client.get_file (file_array, new_path, request, response, set_options, cookie);
+	else if (request.method == 'POST')
+	    files_client.post_file (file_array, new_path, request, response, set_options, cookie);
     });
 });
-
-app.post('/files*', function(request, response) {
-    console.log ("-C-> POST "+request.path);
-    
-    var new_path = buildNewPath(request.path);
-    console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
-    request.path = new_path;
-    var file_array = new_path.split("/");
-
-    // Note: the first element in the array should be '' since the string starts with a '/'
-    if (file_array[1] != 'files') {  // error, some funky request came in
-	console.log("<-C- Destination not valid: " + request.path);
-        response.status(404);
-        response.send('Not Found: ' + request.path);
-        return;
-    }
-
-    sfauth.set_security (request, response, my_options, new_path, function(set_options, cookie) {
-        files_client.post_file (file_array, new_path, request, response, set_options, cookie);
-    });
-});
-
 
 app.all('/*/:id', function(req, res) {
 
