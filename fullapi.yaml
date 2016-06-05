@@ -55,6 +55,7 @@ paths:
     post:
       summary: Upload a file
       description: Upload a file to target folder (for example into path /files/My Files & Folders/new.txt or /files/fo0678ac-aaaa-aaaa-bbbb-ffffffffffff/new.txt)
+      consume: application/json
       parameters:
         - name: File
           in: path
