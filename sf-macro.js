@@ -101,13 +101,17 @@ function capitalizeFirstLetter(string) {
 }
 
 
-function buildNewPath(file_array) {
+function buildNewPath(request_path) {
     var new_path = '';
+
+    var middle = querystring.unescape(request_path);
+    var file_array = request_path.split("/");
+    
     for (var i=1; i< file_array.length; i++) {
 	// console.log ("Processing element "+i+ ":" + file_array[i]);
 	var replace_val = querystring.escape(querystring.unescape(file_array[i]));
 	if (file_array[i] != replace_val) {
-	    console.log ("Replacing " + file_array[i] + " with " + replace_val);
+	    // console.log ("Replacing " + file_array[i] + " with " + replace_val);
 	    file_array[i] = replace_val;
 	}
 	new_path = new_path + '/'+file_array[i];
@@ -118,10 +122,11 @@ function buildNewPath(file_array) {
 
 app.get('/files*', function(request, response) {
     console.log ("-C-> GET "+request.path);
-    var file_array = request.path.split("/");
-    var new_path = buildNewPath(file_array);
-    request.path = new_path;
+
+    var new_path = buildNewPath(request.path);
     console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
+    request.path = new_path;
+    var file_array = request.path.split("/");
     
     // Note: the first element in the array should be '' since the string starts with a '/'        
     if (file_array[1] != 'files') {  // error, some funky request came in
@@ -138,10 +143,11 @@ app.get('/files*', function(request, response) {
 
 app.post('/files*', function(request, response) {
     console.log ("-C-> POST "+request.path);
-    var file_array = request.path.split("/");
-    var new_path = buildNewPath(file_array);
-    request.path = new_path;
+    
+    var new_path = buildNewPath(request.path);
     console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
+    request.path = new_path;
+    var file_array = request.path.split("/");
 
     // Note: the first element in the array should be '' since the string starts with a '/'
     if (file_array[1] != 'files') {  // error, some funky request came in
