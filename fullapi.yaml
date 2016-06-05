@@ -1,0 +1,1513 @@
+# this the outline of the ShareFIle Macro API
+swagger: '2.0'
+info:
+  title: ShareFile  API
+  description: v3 API
+  version: "3.0.0"
+# the domain of the service
+host: sf-macro-prod.ddns.net:5000
+# array of all schemes that your API supports
+schemes:
+  - http
+# will be prefixed to all paths
+basePath: /
+produces:
+  - application/json
+parameters:
+  Authorization:
+    name: Authorization
+    in: header
+    description: Bearer authorization token
+    required: false
+    type: string
+  Cookie:
+    name: Cookie
+    in: header
+    description: Cookie information returned on previous request (with syntax 'Ado=xxx...xxx;path=/;domain=.ddns.net')
+    required: false
+    type: string
+  code:
+    name: code
+    in: query
+    description: Request code (requires subdomain)
+    required: false
+    type: string
+  subdomain:
+    name: subdomain
+    in: query
+    description: Subdomain of sharefile account (used with request code or username/password)
+    required: false
+    type: string
+  username:
+    name: username
+    in: query
+    description: User name (requires subdomain and password)
+    required: false
+    type: string
+  password:
+    name: password
+    in: query
+    description: Password (requires subdomain and username)
+    required: false
+    type: string
+paths:
+  /files/{File}:
+    post:
+      summary: Upload a file
+      description: Upload a file to target folder
+      parameters:
+        - name: url
+          in: query
+          description: Remote URL of a file to be used as the source of this new file
+          required: false
+          type: string
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Files
+      responses:
+        200:
+          description: Returns file metadata
+          schema:
+            $ref: '#/definitions/Files'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    get:
+      summary: Get a file
+      description: This endpoint allows you to retrieve files as well as file metadata
+      parameters:
+        - name: File
+          in: path
+          description: Unique file / folder ID or path
+          required: true
+          type: string
+        - name: metadata
+          in: query
+          description: Retrieve only file metadata instead of contents
+          required: false
+          type: boolean
+          format: boolean
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Files
+      responses:
+        200:
+          description: A download link for a file or file metadata
+          schema:
+            $ref: '#/definitions/Files'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    patch:
+      summary: Update file metadata
+      description: Using this endpoint you can update the information about a file
+      parameters:
+        - name: File
+          in: path
+          description: This can either be a unique id or a path to the file
+          required: true
+          type: string
+        - name: name
+          in: query
+          description: Unique file / folder ID or path
+          required: false
+          type: string
+        - name: fileName
+          in: query
+          description: Update display name of file
+          required: false
+          type: string
+        - name: description
+          in: query
+          description: Update description of the file
+          required: false
+          type: string
+        - name: parentIdentifier
+          in: query
+          description: Change location of file by providing new parent folder
+          required: false
+          type: string
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Files
+      responses:
+        200:
+          description: Returns file metadata
+          schema:
+            $ref: '#/definitions/Files'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Delete file 
+      description: Remove a file from ShareFile
+      parameters:
+        - name: File
+          in: path
+          description: Unique file / folder ID or path
+          required: true
+          type: string
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Files
+      responses:
+        200:
+          description: OK
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /files/:
+    get:
+      summary: Get a list of files in root directory
+      description: This endpoint allows you to retrieve root file list
+      parameters:
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Files
+      responses:
+        200:
+          description: Returns a nested list of file metadata
+          schema:
+            $ref: '#/definitions/Files'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /shares/{FileIdentifier}/:
+    post:
+      summary: Create a new share to either send or receive files    
+      description: Shares allows sharefile users to give access to files and folders to other users. Shares are used to "Send" or "Request" files to anonymous or named users, without giving the target direct access to the user folders.Shares contain policies - such as expiration, maximum number of downloads, authentication options.
+      operationId: addShare
+      parameters:
+        - name: Share
+          in: body
+          description: Share information
+          required: true
+          schema:
+            $ref: '#/definitions/Shares'
+        - name: FileIdentifier
+          in: path
+          description: This is the unique id of the file or folder to share
+          required: true
+          type: string
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Shares
+      responses:
+        200:
+          description: Share information
+          schema:
+            $ref: '#/definitions/Shares'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /shares/{ShareIdentifier}:
+    get:
+      summary: Get share information
+      description: The share endpoint allows you to create update and delete shares on the account
+      parameters:
+        - name: ShareIdentifier
+          in: path
+          description: This is the unique id of the share
+          required: true
+          type: string
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Shares
+      responses:
+        200:
+          description: Share information
+          schema:
+            $ref: '#/definitions/Shares'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    patch:
+      summary: Update share
+      description: Update a share to either send or receive files
+      parameters:
+        - name: ShareIdentifier
+          in: path
+          description: Unique identifier of the share
+          required: true
+          type: string
+        - name: Share
+          in: body
+          description: Share information
+          required: true
+          schema:
+            $ref: '#/definitions/Shares'
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Shares
+      responses:
+        200:
+          description: Share information
+          schema:
+            $ref: '#/definitions/Shares'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Delete share 
+      description: Remove a share from ShareFile
+      parameters:
+        - name: ShareIdentifier
+          in: path
+          description: Unique identifier for the share
+          required: true
+          type: string
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Shares
+      responses:
+        200:
+          description: OK
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /shares/{ShareIdentifier}/Recipients/:
+    get:
+      summary: Get recipients of a share
+      description: Retrieve the list of Recipients in the share. Recipients represent the target users of the Share, containing access information, such as number of times that user downloaded files from the share. Each Recipient is identified by an Alias, which is an unique ID given to each user - allowing tracking of downloads for non-authenticated users.
+      parameters:
+        - name: ShareIdentifier
+          in: path
+          description: This is the unique id of the share
+          required: true
+          type: string
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Shares
+      responses:
+        200:
+          description: Share information
+          schema:
+            $ref: '#/definitions/Recipients'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      summary: Add a recipient to a share
+      description: Creates a recipient user for a share that requires user information
+      parameters:
+        - name: ShareIdentifier
+          in: path
+          description: This is the unique id of the share
+          required: true
+          type: string
+        - name: Recipient
+          in: body
+          description: User Information
+          required: true
+          schema:
+            $ref: '#/definitions/Recipients'
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Shares
+      responses:
+        200:
+          description: Share information
+          schema:
+            $ref: '#/definitions/Recipients'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /shares/{ShareIdentifier}/Items/:
+    get:
+      summary: Get list of items of a share
+      description: Retrieve the list of Items (files and folders) in the Send Share.
+      parameters:
+        - name: ShareIdentifier
+          in: path
+          description: This is the unique id of the share
+          required: true
+          type: string
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Shares
+      responses:
+        200:
+          description: Share information
+          schema:
+            $ref: '#/definitions/Items'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /shares/{ShareIdentifier}/Download/:
+    get:
+      summary: Download items of a share
+      description: Downloads items from the Share. The default action will download all Items in the Share. If a Share has a single item, the download attachment name will use the item name. Otherwise, the download will contain a ZIP archive containing all files and folders in the share, named Files.zip.
+      
+        To download Shares that require authentication, make sure this request is authenticated. To download shares that require require user information, provide the Name, Email and Company parameters in the URI query. Anyone can download files from anonymous shares.
+        
+        You can also download individual Items in the Share. Use the Share(id)/Items(id)/Download action. The item ID must be a top-level item in the Share - i.e., you cannot download or address files contained inside a shared folder.
+      parameters:
+        - name: ShareIdentifier
+          in: path
+          description: This is the unique id of the share
+          required: true
+          type: string
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Shares
+      responses:
+        200:
+          description: Share information
+          schema:
+            $ref: '#/definitions/Items'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /users/:
+    get:
+      summary: With the users endpoint you can add and modify users and their capabilities
+      description: Get list of users based on type
+      parameters:
+        - name: userType
+          in: query
+          type: string
+          description: Client or employee user or none to get all
+          required: false
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Users
+      responses:
+        200:
+          description: Information for the given user
+          schema:
+            $ref: '#/definitions/Users'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      summary: Create user
+      description: Create a new user
+      parameters:
+        - name: Users
+          in: body
+          description: User information
+          required: true
+          schema:
+            $ref: '#/definitions/Users'
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Users
+      responses:
+        200:
+          description: Information about the given user
+          schema:
+            $ref: '#/definitions/Users'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /users/{UserIdentifier}:
+    get:
+      summary: User information
+      description: The user endpoint returns data about a user
+      parameters:
+        - name: UserIdentifier
+          in: path
+          type: string
+          description: User id is the unique identifier for a user
+          required: true
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Users
+      responses:
+        200:
+          description: Information about the given user
+          schema:
+            $ref: '#/definitions/Users'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    patch:
+      summary: Update user
+      description: Update a user
+      parameters:
+        - name: UserIdentifier
+          in: path
+          description: Unique identifier for the user
+          required: true
+          type: string
+        - name: User
+          in: body
+          description: User information
+          required: true
+          schema:
+            $ref: '#/definitions/Users'
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Users
+      responses:
+        200:
+          description: Information about the given user
+          schema:
+            $ref: '#/definitions/Users'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Delete user 
+      description: |
+        Remove a user from ShareFile
+      parameters:
+        - name: UserIdentifier
+          in: path
+          description: Unique identifier for the user
+          required: true
+          type: string
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Users
+      responses:
+        200:
+          description: OK
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /users/{UserIdentifier}/permissions/:
+    get:
+      summary: Get permissions
+      description: View full list of permissions
+      parameters:
+        - name: UserIdentifier
+          in: path
+          description: Unique identifier for the user
+          required: true
+          type: string
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Users
+      responses:
+        200:
+          description: User permission information
+          schema:
+            $ref: '#/definitions/UserPermissions'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post: 
+      summary: Create permissions
+      description: Create new permissions for the user
+      parameters:
+        - name: UserIdentifier
+          in: path
+          description: Unique identifier for the user
+          required: true
+          type: string
+        - name: UserPermission
+          in: body
+          description: User Permission Information
+          required: true
+          schema:
+            $ref: '#/definitions/UserPermissions'
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Users
+      responses:
+        200:
+          description: User permission information
+          schema:
+            $ref: '#/definitions/UserPermissions'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+      
+    patch:
+      summary: Add permissions
+      description: Add a permission to the user
+      parameters:
+        - name: UserIdentifier
+          in: path
+          description: Unique identifier for the user
+          required: true
+          type: string
+        - name: UserPermission
+          in: body
+          description: User Permission Information
+          required: true
+          schema:
+            $ref: '#/definitions/UserPermissions'
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Users
+      responses:
+        200:
+          description: User permission information
+          schema:
+            $ref: '#/definitions/UserPermissions'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Remove permissions
+      description: Take away permissions from specific user
+      parameters:
+        - name: UserIdentifier
+          in: path
+          description: Unique Identifier for the user
+          required: true
+          type: string
+        - name: UserPermissions
+          in: body
+          description: User Permission Information
+          required: true
+          schema:
+            $ref: '#/definitions/UserPermissions'
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Users
+      responses:
+        200:
+          description: User permission information
+          schema:
+            $ref: '#/definitions/UserPermissions'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /groups/:
+    get:
+      description: Groups make it easy to assign permissions to files and folders.  Instead of having to create a new access control for each user you can create it for the group and then add the user to the group.
+      summary: Retrieves all distribution groups this user has permissions to view in this account
+      parameters:
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Groups
+      responses:
+        200:
+          description: Group information
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Groups'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      summary: Create a new group
+      description: Creates a new group. The Post query must include the specification of the group.
+      parameters:
+        - name: Contacts
+          in: query
+          required: true
+          description: List of user ids or email addresses to add to group 
+          type: array
+          items: 
+            type: string
+        - name: Name
+          in: query
+          required: true
+          description: Name of group
+          type: string
+        - name: IsShared
+          in: query
+          required: false
+          type: boolean
+          description: Is the group shared
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Groups
+      responses:
+        200:
+          description: Group information
+          schema:
+            $ref: '#/definitions/Groups'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /groups/{GroupIdentifier}:
+    get:
+      summary: Get a specific group 
+      description: Retrives a single Group by id
+      parameters:
+        - name: GroupIdentifier
+          in: path
+          required: true
+          type: string
+          description: Unique indentifier of the group
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Groups
+      responses:
+        200:
+          description: Group information
+          schema:
+            $ref: '#/definitions/Groups'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    patch:
+      summary: Update a specific group
+      description: Updates an existing group. This operation will ignore the provided clients list. Use the \Contacts navigation link to add/remove elements from a group
+      parameters:
+        - name: GroupIdentifier
+          in: path
+          required: true
+          description: Unique identifier of group
+          type: string
+        - name: Name
+          in: query
+          required: true
+          description: Name of group
+          type: string
+        - name: IsShared
+          in: query
+          required: false
+          type: boolean
+          description: Is the group shared
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Groups
+      responses:
+        200:
+          description: Group information
+          schema:
+            $ref: '#/definitions/Groups'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Delete group 
+      description: Remove a group from ShareFile
+      parameters:
+        - name: GroupIdentifier
+          in: path
+          description: Unique identifier for the group
+          required: true
+          type: string
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Groups
+      responses:
+        200:
+          description: OK
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /groups/{GroupIdentifier}/contacts/:
+    get:
+      summary: Get a list of contacts for a specific group
+      description: Retrieves the contacts of a group
+      parameters:
+        - name: GroupIdentifier
+          in: path
+          required: true
+          type: string
+          description: Unique indentifier of the group
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Groups
+      responses:
+        200:
+          description: Contact information
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      summary: Add a list of contacts to group
+      description: Adds a list of contacts to a group. The contact list may contain either contact ID (same as User ID) or Email.
+      parameters:
+        - name: GroupIdentifier
+          in: path
+          required: true
+          type: string
+          description: Unique indentifier of the group
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Groups
+      responses:
+        200:
+          description: Group information
+          schema:
+            $ref: '#/definitions/Groups'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Remove contacts from group
+      description: Remove contacts from group
+      parameters:
+        - name: GroupIdentifier
+          in: path
+          required: true
+          type: string
+          description: Unique indentifier of the group
+        - name: Contacts
+          in: query
+          description: User id or email address [{"Email":"user.one@domain.com"},{"Id":"abcd"}] 
+          required: true
+          type: array
+          items:
+            type: string
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Groups
+      responses:
+        200:
+          description: Group information
+          schema:
+            $ref: '#/definitions/Groups'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /items/{ItemIdentifier}/accesscontrols/:
+    get:
+      description: AccessControls define the rights and options of a Principal to a given Item AccessControls define a set of rights - such as CanUpload, CanDownload, CanView - as well as a set of options - such as NotifyOnUpload - that applies to a given Principal (user) and Item (folder). In ShareFile, Access Controls are only associated with Folders. Access Controls can be inherited on Children Folders, or Children can override the list of the Parent. The ACLs are not additive - either the Child uses the list of the Parent, or it defines a new list.
+      summary: Retrieves the access control list for a given item.
+      parameters:
+        - name: ItemIdentifier
+          in: path
+          type: string
+          required: true
+          description: Unique identifier for the file or folder
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - AccessControls
+      responses:
+        200:
+          description: AccessControl information
+          schema:
+              $ref: '#/definitions/AccessControls'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      summary: Create access control for item
+      description: Creates a new Access Controls entry for a given Item. Access controls can only define a single Principal, which can be either a Group or User. The 'Principal' element is specified as an object - you should populate either the URL or the ID reference.
+      parameters:
+        - name: ItemIdentifier
+          in: path
+          type: string
+          description: File or folder identifier access control should be attached to
+          required: true
+        - name: Principal
+          in: query
+          type: string
+          description: Principal - user or group - that has been granted permissions through this rule
+          required: true
+        - name: CanUpload
+          in: query
+          type: boolean
+          description: Defines whether the principal can add files (upload) into the Item
+          required: false
+        - name: CanDownload
+          in: query
+          type: boolean 
+          description: Defines whether the principal can read file content (download) from this Item
+          required: false
+        - name: CanView    
+          in: query
+          type: boolean 
+          description:  Defines whether the principal can view items (browse) from this Item
+          required: false
+        - name: CanDelete
+          in: query
+          type: boolean 
+          description:  Defines whether the principal can remove items from this Item
+          required: false
+        - name: CanManagePermissions  
+          in: query
+          type: boolean 
+          description: Defines whether the principal can configure Access Controls in this Item
+          required: false
+        - name: NotifyOnUpload   
+          in: query
+          type: boolean
+          description: Defines the notification preference for upload events. If set, the principal will receive notifications when new files are uploaded into this Item
+          required: false
+        - name: NotifyOnDownload      
+          in: query
+          type: boolean 
+          description:  Defines the notification preference for download events. If set, the principal will receive notifiation when items are downloaded from this Item.
+          required: false
+        - name: IsOwner
+          in: query
+          type: boolean 
+          description: Defines whether the principal is the owner of this Item
+          required: false
+        - name: recursive
+          in: query
+          type: boolean
+          description: Indicates whether the operation applies to sub-folders of this item. Default is "false", only the target object is modified
+          required: false
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - AccessControls
+      responses:
+        200:
+          description: AccessControl information
+          schema:
+            $ref: '#/definitions/AccessControls'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    patch:
+      summary: Update access control for item
+      description: Updates an existing Access Controls of a given Item. The Principal element cannot be modified, it is provided in the query to identity the AccessControl element to be modified. You can provide an ID, Email or URL on the Principal object.
+      parameters:
+        - name: ItemIdentifier
+          in: path
+          type: string
+          description: File or folder identifier access control should be attached to
+          required: true
+        - name: Principal
+          in: query
+          type: string
+          description: Principal - user or group - that has been granted permissions through this rule
+          required: true
+        - name: CanUpload
+          in: query
+          type: boolean
+          description: Defines whether the principal can add files (upload) into the Item
+          required: false
+        - name: CanDownload
+          in: query
+          type: boolean 
+          description: Defines whether the principal can read file content (download) from this Item
+          required: false
+        - name: CanView    
+          in: query
+          type: boolean 
+          description:  Defines whether the principal can view items (browse) from this Item
+          required: false
+        - name: CanDelete
+          in: query
+          type: boolean 
+          description:  Defines whether the principal can remove items from this Item
+          required: false
+        - name: CanManagePermissions  
+          in: query
+          type: boolean 
+          description: Defines whether the principal can configure Access Controls in this Item
+          required: false
+        - name: NotifyOnUpload   
+          in: query
+          type: boolean
+          description: Defines the notification preference for upload events. If set, the principal will receive notifications when new files are uploaded into this Item
+          required: false
+        - name: NotifyOnDownload      
+          in: query
+          type: boolean 
+          description:  Defines the notification preference for download events. If set, the principal will receive notifiation when items are downloaded from this Item.
+          required: false
+        - name: IsOwner
+          in: query
+          type: boolean 
+          description: Defines whether the principal is the owner of this Item
+          required: false
+        - name: recursive
+          in: query
+          type: boolean
+          description: Indicates whether the operation applies to sub-folders of this item. Default is "false", only the target object is modified
+          required: false
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - AccessControls
+      responses:
+        200:
+          description: AccessControl information
+          schema:
+            $ref: '#/definitions/AccessControls'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /accesscontrols/{PrincipalIdentifier}/{ItemIdentifier}:
+    get:
+      summary: Permissions on files 
+      description: Retrieves a single access control entry for a given item and principal
+      parameters:
+        - name: PrincipalIdentifier
+          in: path
+          type: string
+          required: true
+          description: Unique identifier for the user or group
+        - name: ItemIdentifier
+          in: path
+          type: string
+          required: true
+          description: unique identifier for the file or folder
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - AccessControls
+      responses:
+        200:
+          description: AccessControl information
+          schema:
+            $ref: '#/definitions/AccessControls'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Delete access control from item
+      description: |
+        Remove a Folder from ShareFile
+      parameters:
+        - name: PrincipalIdentifier
+          in: path
+          type: string
+          required: true
+          description: Unique identifier for the user or group
+        - name: ItemIdentifier
+          in: path
+          type: string
+          required: true
+          description: Unique identifier for the file or folder
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - AccessControls
+      responses:
+        200:
+          description: OK
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /accesscontrols/clone/:
+    post:
+      summary: Clone access controls for users
+      description: Recursively clones multiple access controls for a multiple users
+      parameters:  
+        - name: FolderIdentifier
+          in: query
+          type: string
+          required: true
+          description: Unique identifier for the folder
+        - name: UserIdentifier
+          in: query
+          type: string
+          required: true
+          description: Unique identifier for the user
+        - name: CloneUserIdentifiers
+          in: query
+          type: array
+          items: 
+            type: string
+          required: true
+          description: Array of user ids to clone the access control for
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - AccessControls
+      responses:
+        200:
+          description: AccessControl information
+          schema:
+            $ref: '#/definitions/AccessControls'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'   
+
+definitions:
+  Shares:
+    type: object
+    properties:
+      ShareIdentifier:
+        type: string
+        description: Unique identifier representing a specific anonymous share
+      AliasID:
+        type: string
+        description: When a Share is sent to multiple users, with RequireLogin or RequireUserInfo set, then a different Share Alias is created for each user. The email ShareFile sends to these users will contain different AliasIDs, allowing ShareFile to track the user activity on the share. For anonymous Shares, the AliasID will be the same as the Share ID.
+      ShareType:
+        type: string
+        description: Either "Send" or "Request". Send Shares are used to Send files and folders to the specified users. Request shares are used to allow users to upload files to the share owner chosen location.
+      Title:
+        type: string
+        description: Title of the share
+      HasSentMessage:
+        type: string
+        description: Flag to indicate if ShareFile has sent email messages for this Share
+      SentMessageTitle:
+        type: string
+        description: Subject of Share email message
+      RequireLogin:
+        type: boolean
+        description: If True, only authenticated users can download files from this share.
+      RequireUserInfo:
+        type: boolean
+        description: If True, users must provide Name, Email and Company information to download files from the share.
+      Parent:
+        $ref: '#/definitions/Items'
+      Creator:
+        $ref: '#/definitions/Users'
+      User:
+        $ref: '#/definitions/Users'
+      Items:
+        type: array
+        items:
+          $ref: '#/definitions/Items'
+      CreationDate:
+        type: string
+        format: dateTime
+        description: Date the share was created
+      ExpirationDate:
+        type: string
+        format: dateTime
+        description: Date the share expires
+      MaxDownloads:
+        type: integer
+        format: int32
+        description: Maximum number of downloads each user can perform.
+      TotalDownloads:
+        type: integer
+        format: int32
+        description: Total number of times a share has been downloaded by a user.
+      IsViewOnly:
+        type: boolean
+        description: Used for Virtual Data Room accounts - indicates the files in the share can only be downloaded with an applied watermark.
+      TrackUntilDate:
+        type: string
+        format: dateTime
+        description: User activity on this share will be tracked up to this date.
+      SendFrequency:
+        type: integer
+        format: int32
+      SendInterval:
+        type: integer
+        format: int32
+      LastDateSent:
+        type: string
+        format: dateTime
+      IsConsumed:
+        type: boolean
+        description: Indicates whether or not this Share has been downloaded
+      IsRead:
+        type: boolean
+        description: Indicates whether the contents of this share have been viewed by a valid, authenticated recipient
+      IsArchived:
+        type: boolean
+      SendTool:
+        type: string
+      SendMethod:
+        type: string
+      UsesStreamIds:
+        type: boolean
+        description: When enabled the items are identified by stream IDs instead of item IDs. Applies to Send Shares only
+      Uri:
+        type: string
+        description:	Uri to access the share through the Web portal
+      Recipients:
+        type: array
+        items:
+          $ref: '#/definitions/Recipients'
+          description: List of users that have access to this share.
+      Zone:
+        $ref: '#/definitions/Zone'
+      Signature:
+        type: string	
+        description: HMAC Signature for the Share data
+      HasRemoteChildren:
+        type: boolean
+        description: Defines whether the request to retrieve Share Items is to be navigated to a remote endpoint.
+      Redirection:
+        type: string
+        description:	Redirection endpoint for this Share.
+  Users:
+    type: object
+    properties:
+      UserIdentifier:
+        type: string
+        description: Unique identifier for the user
+      Email:
+        type: string
+        description: email address
+      FirstName:
+        type: string
+        description: first name of user
+      LastName:
+        type: string
+        description: last name of user
+      Company:
+        type: string
+        description: company name
+      Password:
+        type: string
+        description: password
+      userType:
+        type: string
+        description: client or employee user
+  Groups:
+    type: object
+    properties:
+      GroupIdentifier:
+        type: string
+        description: Unique Identifier for the group
+      Name:
+        type: string
+        description: Name of the group
+      IsShared:
+        type: boolean
+        description: shared group
+      Users:
+        type: array
+        items:
+          $ref: '#/definitions/Items' 
+  AccessControls:
+    type: object
+    properties:
+      Item:
+        type: array
+        items:
+          $ref: '#/definitions/Item'
+        description: File or Folder Id that was given permission through this rule
+      Principal:
+        type: array
+        items:
+          $ref: '#/definitions/Principal' 
+        description: User or Group - that has been granted permissions through this rule
+      CanUpload: 
+        type: boolean
+        description: Defines whether the principal can add files (upload) into the Item
+      CanDownload: 
+        type: boolean 
+        description: Defines whether the principal can read file content (download) from this Item
+      CanView:                                  
+        type: boolean 
+        description:  Defines whether the principal can view items (browse) from this Item
+      CanDelete:                                     
+        type: boolean 
+        description:  Defines whether the principal can remove items from this Item
+      CanManagePermissions:                                          
+        type: boolean 
+        description: Defines whether the principal can configure Access Controls in this Ite
+      NotifyOnUpload:             
+        type: boolean
+        description: Defines the notification preference for upload events. If set, the principal will receive notifications when new files are uploaded into this Item
+      NotifyOnDownload:                                                  
+        type: boolean 
+        description:  Defines the notification preference for download events. If set, the principal will receive notifiation when items are downloaded from this Item.
+      IsOwner:
+        type: boolean 
+        description: Defines whether the principal is the owner of this Item
+  UserPermissions:
+    type: object
+    properties:
+      CanChangePassword:
+        type: boolean 
+        description: Can user change password
+      CanManageMySettings:
+        type: boolean 
+        description: Can user change settings
+      CanUseFileBox:
+        type: boolean 
+        description: Does the user have a filebox
+      CanManageUsers:
+        type: boolean 
+        description: Can user manage other users
+      CanCreateFolders:
+        type: boolean 
+        description: Can user create folders
+      CanUseDropBox:
+        type: boolean 
+        description: Can the user use the drop box
+  Files:
+    type: object
+    properties:
+      FileIdentifier:
+        type: string
+        description: File or Folder Id
+      FileCount: 
+        type: string
+        description: File or Folder Id
+      Name: 
+        type: string
+        description: File or Folder Id
+      Parent: 
+        $ref: '#/definitions/Items'
+      CreationDate:
+        type: string
+        description: File or Folder Id
+      ProgenyEditDate: 
+        type: string
+        description: File or Folder Id
+      ExpirationDate: 
+        type: string
+        description: File or Folder Id
+      Description:
+        type: string
+        description: File or Folder Id
+      CreatorFirstName:
+        type: string
+        description: File or Folder Id      
+      CreatorLastName:
+        type: string
+        description: File or Folder Id      
+      FileSizeBytes:
+        type: string
+        description: File or Folder Id      
+      url: 
+        type: string
+        description: File or Folder Id  
+  Items:
+    type: object
+    properties:
+      FileIdentifier:
+        type: string
+        description: File or folder id
+      url:
+        type: string
+        description: Unique api url for item
+  Recipients:
+    type: object
+    properties:
+      Id:
+        type: string
+      Email:
+        type: string
+      FirstName:
+        type: string
+      LastName:
+        type: string
+      Company:
+        type: string
+  Contacts:
+    type: object
+    properties:
+      Id:
+        type: string
+      Email:
+        type: string
+  Zone:
+    type: object
+    properties: 
+      Id:
+        type: string
+  Item:
+    type: object
+    properties: 
+      Id:
+        type: string
+  Principal:
+    type: object
+    properties:
+      Id:
+        type: string
+        description: User or Group Id
+      Email:
+        type: string
+      url:
+        type: string
+  Error:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      fields:
+        type: string
