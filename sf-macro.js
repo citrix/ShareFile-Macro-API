@@ -126,7 +126,7 @@ app.get('/files*', function(request, response) {
     var new_path = buildNewPath(request.path);
     console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
     request.path = new_path;
-    var file_array = request.path.split("/");
+    var file_array = new_path.split("/");
     
     // Note: the first element in the array should be '' since the string starts with a '/'        
     if (file_array[1] != 'files') {  // error, some funky request came in
@@ -137,7 +137,7 @@ app.get('/files*', function(request, response) {
     }
 
     sfauth.set_security (request, response, my_options, new_path, function(set_options, cookie) {
-        files_client.get_file (file_array, request, response, set_options, cookie);
+        files_client.get_file (file_array, new_path, request, response, set_options, cookie);
     });
 });
 
@@ -147,7 +147,7 @@ app.post('/files*', function(request, response) {
     var new_path = buildNewPath(request.path);
     console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
     request.path = new_path;
-    var file_array = request.path.split("/");
+    var file_array = new_path.split("/");
 
     // Note: the first element in the array should be '' since the string starts with a '/'
     if (file_array[1] != 'files') {  // error, some funky request came in
@@ -158,7 +158,7 @@ app.post('/files*', function(request, response) {
     }
 
     sfauth.set_security (request, response, my_options, new_path, function(set_options, cookie) {
-        files_client.post_file (file_array, request, response, set_options, cookie);
+        files_client.post_file (file_array, new_path, request, response, set_options, cookie);
     });
 });
 

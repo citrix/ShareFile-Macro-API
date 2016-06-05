@@ -57,7 +57,7 @@ var set_cookie = function(response, old_cookie) {
 }
 
 
-var get_file = function(file_array, request, response, my_options, cookie) {
+var get_file = function(file_array, new_path, request, response, my_options, cookie) {
     // This function does the following things:
     // 1) Finds the Item by path
     // 2) Prepares the file for download
@@ -96,7 +96,7 @@ var get_file = function(file_array, request, response, my_options, cookie) {
 		possible_fileId = true;
 	}
 	// remove the leading '/files' and stringify the name
-	var trunc_path = querystring.escape(querystring.unescape(request.path.substring(6)));
+	var trunc_path = querystring.escape(querystring.unescape(new_path.substring(6)));
 	item_options.path = itempath_byPath + trunc_path;
     }
     console.log("<-B-: " + JSON.stringify(item_options));
@@ -295,13 +295,13 @@ var send_file = function(file_array, file, my_options, item_id) {
     ul_request.end();
 }
 
-var post_file = function(file_array, request, response, my_options, cookie) {
+var post_file = function(file_array, new_path, request, response, my_options, cookie) {
     // This function does the following things:
     // 1) Finds the parent directory by path
     // 2) Prepares the file for upload into that parent directory
     // 3) Uploads the actual file into the parent directory
 
-    // console.log("post array size: "+file_array.length);
+    console.log("post array size: "+file_array.length);
 
     var item_options = my_options;
     var possible_fileId = false;
