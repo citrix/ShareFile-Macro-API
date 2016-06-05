@@ -45,7 +45,7 @@ app.options('*', function(request, response) {
     response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
     response.setHeader('Access-Control-Max-Age', 10);
     response.setHeader('Accept-Language', 'en-US');
-    response.setHeader('Content-Type'', 'application/json');
+    response.setHeader('Content-Type', 'application/json');
     console.log("<-C- OPTIONS");
     response.send();
     response.end();
