@@ -105,7 +105,7 @@ function buildNewPath(request_path) {
     var new_path = '';
 
     var middle = querystring.unescape(request_path);
-    var file_array = request_path.split("/");
+    var file_array = middle.split("/");
     
     for (var i=1; i< file_array.length; i++) {
 	// console.log ("Processing element "+i+ ":" + file_array[i]);
