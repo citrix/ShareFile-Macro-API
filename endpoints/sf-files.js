@@ -516,6 +516,8 @@ var post_file = function(file_array, new_path, request, response, my_options, co
 		    } else {
 			if (file.length < 50) // only record it in the log if it is small
 			    console.log ("Received this message from client: "+file);
+			else
+			    console.log ("Received a file to upload but it was too long to show you");
 			
 			send_file(file_array, file, my_options, item_id); // send it!
 			send_message(response, 200, "Got it!");

@@ -66,7 +66,7 @@ paths:
           description: Remote URL of a file to be used as the source of this new file
           required: false
           type: string
-        - name:	payload
+        - name:	body
           in: body
           description: Contents of the file to be uploaded
           required: false
