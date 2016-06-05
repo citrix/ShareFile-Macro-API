@@ -54,8 +54,7 @@ paths:
   /files/{File}:
     post:
       summary: Upload a file
-      description: Upload a file to target folder (for example into path /files/My Files & Folders/new.txt or /files/fo0678ac-aaaa-aaaa-bbbb-ffffffffffff/new.txt)
-      consume: application/json
+      description: Upload a file to target folder (for example into path /files/My Files & Folders/new.txt or /files/fo0678ac-aaaa-aaaa-bbbb-ffffffffffff/new.txt).  The file contents are either passed in the body or referred to by a remote URL.
       parameters:
         - name: File
           in: path
@@ -67,6 +66,11 @@ paths:
           description: Remote URL of a file to be used as the source of this new file
           required: false
           type: string
+	- name: body
+	  in: body
+	  description: Contents of the file to be uploaded
+	  required: false
+	  type: string
         - $ref: '#/parameters/Authorization'
         - $ref: '#/parameters/Cookie'
         - $ref: '#/parameters/code'
