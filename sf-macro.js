@@ -38,11 +38,14 @@ var my_options = {  // request options
 
 app.options('*', function(request, response) {
     console.log ("-C-> OPTIONS "+request.path+" ["+JSON.stringify(request.headers)+"]");
+
+    response.setHeader('Access-Control-Allow-Origin', '*');
+    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+    response.end();
 });
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-
 
 function generateFileHash(req){
     var current_date = (new Date()).valueOf().toString();
