@@ -54,8 +54,13 @@ paths:
   /files/{File}:
     post:
       summary: Upload a file
-      description: Upload a file to target folder
+      description: Upload a file to target folder (for example into path /files/My Files & Folders/new.txt or /files/fo0678ac-aaaa-aaaa-bbbb-ffffffffffff/new.txt)
       parameters:
+        - name: File
+          in: path
+          description: Unique file name in folder path or folder id
+          required: true
+          type: string
         - name: url
           in: query
           description: Remote URL of a file to be used as the source of this new file
@@ -89,7 +94,7 @@ paths:
           type: string
         - name: metadata
           in: query
-          description: Retrieve only file metadata instead of contents
+          description: Retrieve only file metadata instead of contents (default is true for folders and false for files)
           required: false
           type: boolean
           format: boolean
