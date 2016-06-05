@@ -488,6 +488,7 @@ var post_file = function(file_array, new_path, request, response, my_options, co
 		var file = '';
 		request.on('data', function (data) {
 		    file += data;
+		    console.log("Got some data " + data);
 		});
 		request.on('end', function() {
 		    if (remote_url) {  // we should ignore the posted body and just fetch contents from the remote url
