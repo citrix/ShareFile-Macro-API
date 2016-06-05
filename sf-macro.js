@@ -114,6 +114,7 @@ app.options('*', function(request, response) {
     response.setHeader('Access-Control-Max-Age', 10);
     response.setHeader('Accept-Language', 'en-US');
     response.setHeader('Content-Type', 'application/json');
+    response.setHeader('Connection', 'close');
     console.log("<-C- OPTIONS");
     response.send();
     response.end();
