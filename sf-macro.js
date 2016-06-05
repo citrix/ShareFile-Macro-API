@@ -39,8 +39,11 @@ var my_options = {  // request options
 app.options('*', function(request, response) {
     console.log ("-C-> OPTIONS "+request.path+" ["+JSON.stringify(request.headers)+"]");
 
+    response.status(200);
     response.setHeader('Access-Control-Allow-Origin', '*');
     response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+    response.setHeader('Accept-Language', 'en-US');
+    response.setHeader('content-type', 'application/json');
     console.log("<-C- OPTIONS");
     response.send();
     response.end();
