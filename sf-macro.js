@@ -42,8 +42,10 @@ app.options('*', function(request, response) {
     response.status(200);
     response.setHeader('Access-Control-Allow-Origin', '*');
     response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+    response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
+    response.setHeader('Access-Control-Max-Age', 10);
     response.setHeader('Accept-Language', 'en-US');
-    response.setHeader('content-type', 'application/json');
+    response.setHeader('Content-Type'', 'application/json');
     console.log("<-C- OPTIONS");
     response.send();
     response.end();
