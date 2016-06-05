@@ -41,6 +41,8 @@ app.options('*', function(request, response) {
 
     response.setHeader('Access-Control-Allow-Origin', '*');
     response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+    console.log("<-C- OPTIONS");
+    response.send();
     response.end();
 });
 
