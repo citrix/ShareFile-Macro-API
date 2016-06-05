@@ -14,7 +14,7 @@ console.log("Local hostname is " + this_host);
 var test_cookie; // used only for testing
 var cookie_path = '/home/azureuser/citrix/ShareFile-env/sf-cookie.js'; // used only for testing
 if (fs.existsSync(cookie_path)) {
-    var cookie_info = require('/home/azureuser/citrix/ShareFile-env/sf-cookie.js');  // used only for testing
+    var cookie_info = require(cookie_path);  // used only for testing
     test_cookie = cookie_info.cookie_context.cookie;  // used only for testing
 }
 var test_user; // used only for testing
@@ -57,8 +57,14 @@ var get_token_options = {
 
 //setup cache connection
 var crypto = require("crypto");
-var redis = require("redis"),
-    redclient = redis.createClient({ port:5001});
+var redis = require("redis");
+var redis_path = '/home/azureuser/citrix/ShareFile-env/sf-redis.js'; // used to specify a redis server
+if (fs.existsSync(redis_path)) {
+    var redis_info = require(redis_path);
+    console.log ("Using this Redis server: " + JSON.stringify(redis_info));
+    var redclient = redis.createClient(redis_info.redis_host);
+} else  //  try to connect to a local host
+    var redclient = redis.createClient({port:5001});
 
 //var my_options = {  // options where security credentials will be set for downstream usage by specific API calls 
 //    hostname: 'zzzz.sf-api.com',

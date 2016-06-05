@@ -14,9 +14,17 @@ var groups_client = require("./endpoints/sf-groups");
 var sfauth = require("./sf-authenticate");
 var bodyParser = require('body-parser');
 var crypto = require("crypto");
-var redis = require("redis"),
-    redclient = redis.createClient({ port:5001});
+var redis = require("redis");
 var beautify = require("js-beautify").js_beautify;
+
+var redis_path = '/home/azureuser/citrix/ShareFile-env/sf-redis.js'; // used to specify a redis server
+if (fs.existsSync(redis_path)) {
+    var redis_info = require(redis_path);
+    console.log ("Using this Redis server: " + JSON.stringify(redis_info));
+    var redclient = redis.createClient(redis_info.redis_host);
+} else  //  try to connect to a local host
+    var redclient = redis.createClient({port:5001});
+
 
 app.set('port', (process.env.PORT || 5000));
 app.use(express.static(__dirname + '/public'));
