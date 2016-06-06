@@ -74,6 +74,7 @@ var delete_file = function(file_array, new_path, request, response, my_options, 
     // console.log("get_file array size: "+file_array.length);
     
     var item_options = my_options;
+    item_options.method = 'GET';
     var possible_fileId = false;
     
     if (file_array[file_array.length-1] == '') // the URL ends in a '/'
@@ -198,6 +199,7 @@ var get_file = function(file_array, new_path, request, response, my_options, coo
     }
     
     var item_options = my_options;
+    item_options.method = 'GET';
     var possible_fileId = false;
     
     if (file_array[file_array.length-1] == '') // the URL ends in a '/'
@@ -280,6 +282,7 @@ var get_file = function(file_array, new_path, request, response, my_options, coo
 
 		// download folder metadata contents and return it
 		var list_options = my_options;
+		list_options.method = 'GET';
 		if (item_id.indexOf('fo')==0)   // it's a folder
 		    list_options.path =  itempath_byID + item_id + ")" + folderpath_tail;
 		else // it's a file
@@ -318,6 +321,7 @@ var get_file = function(file_array, new_path, request, response, my_options, coo
 	    else { // Will return contents
 		console.log ("Returning actual data");
 		var dl_options = my_options;
+		dl_options.method = 'GET';
 		dl_options.path = itempath_byID+item_id+downloadpath_tail;
 		console.log("<-B-: " + JSON.stringify(dl_options));
 		var dl_request = https.request(dl_options, function(dl_response) {
@@ -360,8 +364,8 @@ var get_file = function(file_array, new_path, request, response, my_options, coo
 
 var send_file = function(file_array, file, my_options, item_id) {
     var upload_options = my_options;
-    upload_options.path = itempath_byID + item_id +')/Upload?method=standard&raw=1&fileName='+file_array[file_array.length-1]+'&fileSize='+file.length;
     upload_options.method = 'POST';
+    upload_options.path = itempath_byID + item_id +')/Upload?method=standard&raw=1&fileName='+file_array[file_array.length-1]+'&fileSize='+file.length;
     console.log("<-B-: "+JSON.stringify(upload_options));
     var ul_request = https.request(upload_options, function(ul_response) {
 	console.log("-B->: [" + ul_response.statusCode + "] : [" + JSON.stringify(ul_response.headers) + "]");
@@ -381,7 +385,8 @@ var send_file = function(file_array, file, my_options, item_id) {
 	    console.log('Chunk URI: ' + chunkUri);
 	    var myurl = url.parse(chunkUri);
 	    var sendfile_options = my_options;
-	    
+	    sendfile_options.method = 'POST';
+
 	    sendfile_options.path = myurl.path;
 	    sendfile_options.hostname = myurl.hostname;
 	    sendfile_options.headers = {
@@ -418,6 +423,8 @@ var post_file = function(file_array, new_path, request, response, my_options, co
     console.log("post array size: "+file_array.length);
 
     var item_options = my_options;
+    item_options.method = 'GET';
+
     var possible_fileId = false;
     var remote_url = request.query.url;
     
