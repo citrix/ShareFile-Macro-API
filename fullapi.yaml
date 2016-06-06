@@ -251,7 +251,7 @@ paths:
   /shares/:
     get:
       summary: Get all shares for a user
-      description: Retrive all shares that have been create by the authenticated user
+      description: Retrieve all shares that have been create by the authenticated user
       parameters:
         - $ref: '#/parameters/Authorization'
         - $ref: '#/parameters/Cookie'
@@ -273,7 +273,7 @@ paths:
   /shares/{ShareIdentifier}:
     get:
       summary: Get share information of a specific share
-      description: Retrive a specific share by its identifier
+      description: Retrieve a specific share by its identifier
       parameters:
         - name: ShareIdentifier
           in: path
@@ -797,7 +797,7 @@ paths:
   /groups/{GroupIdentifier}:
     get:
       summary: Get a specific group 
-      description: Retrives a single Group by id
+      description: Retrieves a single Group by id
       parameters:
         - name: GroupIdentifier
           in: path
