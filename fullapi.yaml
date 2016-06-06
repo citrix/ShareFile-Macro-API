@@ -248,10 +248,32 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /shares/:
+    get:
+      summary: Get all shares for a user
+      description: Retrive all shares that have been create by the authenticated user
+      parameters:
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Shares
+      responses:
+        200:
+          description: Share information
+          schema:
+            $ref: '#/definitions/Shares'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /shares/{ShareIdentifier}:
     get:
-      summary: Get share information
-      description: The share endpoint allows you to create update and delete shares on the account
+      summary: Get share information of a specific share
+      description: Retrive a specific share by its identifier
       parameters:
         - name: ShareIdentifier
           in: path
