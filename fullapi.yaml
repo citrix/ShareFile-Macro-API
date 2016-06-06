@@ -55,6 +55,8 @@ paths:
     post:
       summary: Upload a file
       description: Upload a file to target folder (for example into path /files/My Files & Folders/new.txt or /files/fo0678ac-aaaa-aaaa-bbbb-ffffffffffff/new.txt).  The file contents are either passed in the body or referred to by a remote URL.
+      consumes:
+        - text/plain
       parameters:
         - name: File
           in: path
