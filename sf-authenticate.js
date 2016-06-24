@@ -88,7 +88,7 @@ var redirect = function(req, resp,  new_path) {
     }
     if (hashcode)
         my_query +='hashcode='+hashcode;	
-    var parameters = "https://secure.sharefile.com/oauth/authorize?response_type=code&client_id="+client_id+"&redirect_uri="+redirect_url+":5000"+new_path+my_query; 
+    var parameters = "https://secure.sharefile.com/oauth/authorize?response_type=code&client_id="+client_id+"&redirect_uri="+redirect_url+":8080"+new_path+my_query; 
     console.log ("<-C- Redirect to " + parameters);
     resp.redirect(parameters);
 };
