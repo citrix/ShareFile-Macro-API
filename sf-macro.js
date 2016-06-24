@@ -26,7 +26,8 @@ if (fs.existsSync(redis_path)) {
     var redclient = redis.createClient({port:5001});
 
 
-app.set('port', (process.env.PORT || 5000));
+app.set('port', (process.env.PORT || 8080 ));
+
 app.use(express.static(__dirname + '/public'));
 
 var my_options = {  // request options
@@ -129,7 +130,7 @@ app.all('/files*', function(request, response) {
     var file_array = new_path.split("/");
     
     // Note: the first element in the array should be '' since the string starts with a '/'        
-    if (file_array[1] != 'files') {  // error, some funky request came in
+    if (file_array[1].toLowerCase() != 'files') {  // error, some funky request came in
         console.log("<-C- File not found: " + request.path);
         response.status(404);
         response.send('Not Found: ' + request.path);
