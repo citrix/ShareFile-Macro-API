@@ -8,32 +8,31 @@ var token = token_info.token_context.token;
 var http = require('http');
 var querystring = require('querystring');
 
-var message='This message for is for Chris and whoever else might care!';
+var message='{"msg":"hi"}';
 var msg_len=message.length;
 
 var post_options = {
-    hostname: 'adolfonc.ddns.net',
+    hostname: 'sf-macro-prod.ddns.net',
     method: 'POST',
     port: '5000',
     headers: {
-	'Content-Type': 'text/plain',    // It's plain-text
+	'Host': 'adolfo.sf-api.com',
+	'Authorization': 'Bearer: '+token,
+	'Content-Type': 'text/plain', 
 	'Content-Length': msg_len
     },
-    path: '/files/'+querystring.escape('My Files & Folders')+ '/sample.txt',
+    // path: '/files/'+querystring.escape('My Files & Folders')+ '/sample.txt',
+    path: '/files/foadfd5d-6888-4e5a-8108-6fbae10ec22c/sample.txt',
 };
 
 var get_options = {
-    hostname: 'adolfonc.ddns.net',
+    hostname: 'sf-macro-prod.ddns.net',
     port: '5000',
     path: '/files/rs.txt',
     method: 'GET',
 };
 
 get_options.headers = {
-    'Host': 'adolfo.sf-api.com',
-    'Authorization': 'Bearer: '+token,
-}
-post_options.headers = {
     'Host': 'adolfo.sf-api.com',
     'Authorization': 'Bearer: '+token,
 }
