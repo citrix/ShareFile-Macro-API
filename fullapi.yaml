@@ -5,7 +5,7 @@ info:
   description: v3 API
   version: "3.0.0"
 # the domain of the service
-host: sf-macro-prod.ddns.net:5000
+host: sf-macro-prod.ddns.net:8080
 # array of all schemes that your API supports
 schemes:
   - http
