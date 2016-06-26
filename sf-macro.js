@@ -11,6 +11,7 @@ var app = express();
 var files_client = require("./endpoints/sf-files");
 var users_client = require("./endpoints/sf-users");
 var groups_client = require("./endpoints/sf-groups");
+var stream_client = require("./endpoints/sf-streams");
 var sfauth = require("./sf-authenticate");
 var bodyParser = require('body-parser');
 var crypto = require("crypto");
@@ -168,6 +169,39 @@ app.all('/files*', function(request, response) {
 	    files_client.get_file (file_array, new_path, request, response, set_options, cookie);
 	else if (request.method == 'POST')
 	    files_client.post_file (file_array, new_path, request, response, set_options, cookie);
+    });
+});
+
+app.post('/streams/create*', function(request, response) {
+    console.log ("-C-> "+request.method+" "+request.path);
+    var new_path = buildNewPath(request.path);
+    console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
+    request.path = new_path;
+    var file_array = new_path.split("/");
+
+    sfauth.set_security (request, response, my_options, new_path, function(set_options, cookie) {
+	stream_client.create_stream(file_array, new_path, request, response, set_options, cookie);
+    });
+
+});
+
+app.all('/streams/:id*', function(request, response) {
+    console.log ("-C-> "+request.method+" "+request.path);
+    var new_path = buildNewPath(request.path);
+    console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
+    request.path = new_path;
+    var file_array = new_path.split("/");
+
+    sfauth.set_security (request, response, my_options, new_path, function(set_options, cookie) {
+        var id = request.params.id;
+	if (request.method == 'DELETE')
+            stream_client.delete_stream (id, new_path, request, response, set_options, cookie);
+        else if (request.method == 'GET')
+            stream_client.get_stream (id, new_path, request, response, set_options, cookie);
+        else if (request.method == 'POST')
+            stream_client.save_stream (id, new_path, request, response, set_options, cookie);
+	else if (request.method == 'PATCH')
+	    stream_client.update_stream (id, new_path, request, response, set_options, cookie);
     });
 });
 
