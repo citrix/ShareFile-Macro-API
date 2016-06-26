@@ -40,6 +40,29 @@ var my_options = {  // request options
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+function getDateTime() {
+    var date = new Date();
+
+    var hour = date.getHours();
+    hour = (hour < 10 ? "0" : "") + hour;
+
+    var min  = date.getMinutes();
+    min = (min < 10 ? "0" : "") + min;
+
+    var sec  = date.getSeconds();
+    sec = (sec < 10 ? "0" : "") + sec;
+
+    var year = date.getFullYear();
+
+    var month = date.getMonth() + 1;
+    month = (month < 10 ? "0" : "") + month;
+
+    var day  = date.getDate();
+    day = (day < 10 ? "0" : "") + day;
+
+    return year + ":" + month + ":" + day + ":" + hour + ":" + min + ":" + sec;
+}
+
 function generateFileHash(req){
     var current_date = (new Date()).valueOf().toString();
     var random = Math.random().toString();
@@ -122,6 +145,7 @@ app.options('*', function(request, response) {
 });
 
 app.all('/files*', function(request, response) {
+    console.log("------/files----------"+getDateTime()+"-------------");
     console.log ("-C-> "+request.method+" "+request.path);
 
     var new_path = buildNewPath(request.path);
@@ -148,7 +172,7 @@ app.all('/files*', function(request, response) {
 });
 
 app.all('/*/:id', function(req, res) {
-
+    console.log("------/*/:id----------"+getDateTime()+"-------------");
     console.log(req.path);
     sfauth.set_security (req, res, my_options, req.url, function(set_options, cookie) {
         var id = req.params.id;
@@ -198,7 +222,7 @@ app.all('/*/:id', function(req, res) {
 });
 
 app.all('/*', function(req, res) {
-
+    console.log("------/*----------"+getDateTime()+"-------------");
     sfauth.set_security (req, res, my_options, req.url, function(set_options, cookie) {
         set_options.method = retrieveMethod(req);
         var body = retrieveBody(req);
