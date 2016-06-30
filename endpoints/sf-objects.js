@@ -48,17 +48,21 @@ var create_object= function(entity_name, request, response, options) {
 	var key = subdomain_id +":"+ entity_name;
 	console.log(key);
 	redclient.rpush(key, object_string, function(err, object_count) {
-	    console.log(object_count); //prints 2
-	    var object_id = object_count - 1;
-	    var entity_total = "Total " + entity_name;
-	    var entity_id = entity_name + " Id";
-	    var output_json = { "Object Name" : entity_name, "Total Objects" : object_count, "Object Id": object_id };   
-	    var output_string = JSON.stringify(output_json);    
-	    send_message(response, '200', 'Success', output_string);
+	    if ((err) || (!object_count)) {
+		send_message(response, '500', 'There was an error with your request');
+	    } else {
+		console.log(object_count); //prints 2
+		var object_id = object_count - 1;
+		var entity_total = "Total " + entity_name;
+		var entity_id = entity_name + " Id";
+		var output_json = { "Object Name" : entity_name, "Total Objects" : object_count, "Object Id": object_id };   
+		var output_string = JSON.stringify(output_json);    
+		send_message(response, '200', 'Success', output_string);
+	    }
 	});
     });
   } catch (err) {
-      send_message(response, '500', 'Error', err);
+      send_message(response, '500', 'There was an error with your request');
   }
 }
 
@@ -69,12 +73,16 @@ var get_object = function(id, entity, request, response, options ) {
 	var key = subdomain_id +":"+ entity;
 	console.log(key);
 	redclient.lindex(key, id, function(err, object_string) {
-	    console.log(object_string); //prints 2                
-	    send_message(response, '200', 'Success', object_string);
+	    if ((err) || (!object_string))  {
+		send_message(response, '500', 'There was an error with your request');
+	    } else {
+		console.log(object_string); //prints 2                
+		send_message(response, '200', 'Success', object_string);
+	    }
 	});
     });
  } catch (err){
-      send_message(response, '500', 'Error', err);
+      send_message(response, '500', 'There was an error with your request');
   }
 
 }
@@ -85,21 +93,24 @@ var update_object = function(id, entity, request, response, options) {
     get_subdomain_id(options, function(subdomain_id){
 	var key = subdomain_id +":"+ entity;
 	redclient.lindex(key, id, function (err, object_string){
-	    object_json = JSON.parse(object_string);
-	    request_json = request.body;
-	    console.log(request.body);
-            for(var i in request_json){
-		var cur_key = i;
-		var val = request_json[i];
-		console.log(val);
-		object_json[cur_key] = val;
+	    if ((err) || (!object_string)){
+		send_message(response, '500', 'There was an error with your request');
+	    } else {
+		object_json = JSON.parse(object_string);
+		request_json = request.body;
+		console.log(request.body);
+		for(var i in request_json){
+		    var cur_key = i;
+		    var val = request_json[i];
+		    console.log(val);
+		    object_json[cur_key] = val;
+		}
+		object_info = JSON.stringify(object_json);
+		redclient.lset(key, id, object_info, function(err, reply) {
+		    console.log(reply);
+		    send_message(response, '200', 'Success', reply);
+		});
 	    }
-
-	    object_info = JSON.stringify(object_json);
-	    redclient.lset(key, id, object_info, function(err, reply) {
-		console.log(reply);
-		send_message(response, '200', 'Success', reply);
-	    });
 	});
     });
   } catch (err){
@@ -113,9 +124,9 @@ var delete_object = function(id, entity, request, response, options) {
   try {
     get_subdomain_id(options, function(subdomain_id){
 	var key = subdomain_id +":"+ entity;
-	redclient.lset(key, id, "", function(err,reply){
+	redclient.lset(key, id, "DELETED", function(err,reply){
 	    console.log(reply);
-	    send_message(response, '200', 'Success', reply);
+	    send_message(response, '200', 'Success');
 	});
     });
   } catch (err){
@@ -129,10 +140,14 @@ var get_property = function(id, entity, property, request, response, options) {
     get_subdomain_id(options, function(subdomain_id){
 	var key = subdomain_id +":"+ entity;
 	redclient.lindex(key, id, function (err, object_string){
-            object_json = JSON.parse(object_string);
-            var property_json = object_json[property];
-	    console.log(property_json);
-            send_message(response, '200', 'Success', JSON.stringify(property_json));
+	    if ((err) || (!object_string)){
+		send_message(response, '500', 'There was an error with your request');
+	    } else {
+		object_json = JSON.parse(object_string);
+		var property_json = object_json[property];
+		console.log(property_json);
+		send_message(response, '200', 'Success', JSON.stringify(property_json));
+	    }
 	});
     });
   } catch (err){
@@ -146,8 +161,8 @@ var create_property = function(id, entity, property, request, response, options)
     get_subdomain_id(options, function(subdomain_id){
 	var key = subdomain_id +":"+ entity;
 	redclient.lindex(key, id, function (err, object_string){
-	    if (err){
-		      send_message(response, '500', 'Error', err);
+	    if ((err) || (!object_string)) {
+		send_message(response, '500', 'There was an error with your request');
             } else {
 		object_json = JSON.parse(object_string);
 		request_json = request.body;
@@ -174,27 +189,37 @@ var update_property = function(id, entity, property, request, response, options)
     get_subdomain_id(options, function(subdomain_id){
 	var key = subdomain_id +":"+ entity;
 	redclient.lindex(key, id, function (err, object_string){
-            object_json = JSON.parse(object_string);
-	    property_json = object_json[property];
-            request_json = request.body;
-            console.log(request.body);
-            for(var i in request_json){
-		var cur_key = i;
-		var val = request_json[i];
-		console.log(val);
-		property_json[cur_key] = val;
-            }
-	    object_json[property] = property_json;
-            object_info = JSON.stringify(object_json);
+	    if ((err) || (!object_string)){
+		send_message(response, '500', 'There was an error with your request');
+	    } else {
+		object_json = JSON.parse(object_string);
+		property_json = object_json[property];
+		request_json = request.body;
+		if (!property_json){
+		    object_json[property] = request_json;
+		} else {
+		    request_json = request.body;
+		    console.log(request.body);
+		    for(var i in request_json){
+			var cur_key = i;
+			var val = request_json[i];
+			console.log(val);
+			property_json[cur_key] = val;
+		    }
+		    object_json[property] = property_json;
+		}
+		
+		object_info = JSON.stringify(object_json);
       
-	    redclient.lset(key, id, object_info, function(err, reply) {
-		console.log(reply);
-		send_message(response, '200', 'Success', reply);
-	    });
+		redclient.lset(key, id, object_info, function(err, reply) {
+		    console.log(reply);
+		    send_message(response, '200', 'Success', reply);
+		});
+	    }
 	});
     });
    } catch (err){
-      send_message(response, '500', 'Error', err);
+      send_message(response, '500', 'Error');
   }
 }
 
@@ -205,24 +230,32 @@ var delete_property = function(id, entity, property, request, response, options)
     get_subdomain_id(options, function(subdomain_id){
 	var key = subdomain_id +":"+ entity;
 	redclient.lindex(key, id, function (err, object_string){
-            object_json = JSON.parse(object_string);
-            delete object_json[property];
-            object_info = JSON.stringify(object_json);
-            redclient.lset(key, id, object_info, function(err, reply){
-		console.log(reply);
-		send_message(response, '200', 'Success', reply);
-	    });
+            if ((err) || (!object_string)){
+		send_message(response, '500', 'There was an error with your request');
+	    } else {
+		object_json = JSON.parse(object_string);
+		if (object_json[property]) {
+		    delete object_json[property];
+		}
+		object_info = JSON.stringify(object_json);
+		redclient.lset(key, id, object_info, function(err, reply){
+		    console.log(reply);
+		    send_message(response, '200', 'Success', reply);
+		});
+	    }
 	});
     });
    } catch (err){
-      send_message(response, '500', 'Error', err);
+      send_message(response, '500', 'Error');
   }
 }
 
 var send_message = function(response, status, message, json) {
     var send_msg;
-    if (!json)
-        send_msg = message;
+    if (!json) {
+        json = {"Message" : message };
+	json = JSON.stringify(json);
+    }
     response.status(status);
     response.setHeader('content-type', 'application/json');
     response.setHeader('Access-Control-Allow-Origin', '*');
