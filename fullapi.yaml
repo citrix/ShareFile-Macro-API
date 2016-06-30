@@ -1,4 +1,4 @@
-# this the outline of the ShareFIle Macro API
+# this the outline of the ShareFIle Macro API.
 swagger: '2.0'
 info:
   title: ShareFile  API
