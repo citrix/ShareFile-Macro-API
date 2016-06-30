@@ -173,7 +173,7 @@ app.all('/files*', function(request, response) {
     });
 });
 
-app.post('/object/:entity', function(request, response) {
+app.all('/object/:entity', function(request, response) {
     console.log ("-C-> "+request.method+" "+request.path);
     var new_path = buildNewPath(request.path);
     console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
@@ -181,7 +181,11 @@ app.post('/object/:entity', function(request, response) {
     var file_array = new_path.split("/");
     var entity_name = request.params.entity;
     sfauth.set_security (request, response, my_options, new_path, function(set_options, cookie) {
-        object_client.create_object(entity_name, request, response, set_options);
+	if (request.method == 'GET') {
+	    object_client.get_all_objects(entity_name, request, response, set_options);
+	} else {
+            object_client.create_object(entity_name, request, response, set_options);
+	}
     });
 
 });

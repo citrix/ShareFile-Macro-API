@@ -55,7 +55,9 @@ var create_object= function(entity_name, request, response, options) {
 		var object_id = object_count - 1;
 		var entity_total = "Total " + entity_name;
 		var entity_id = entity_name + " Id";
-		var output_json = { "Object Name" : entity_name, "Total Objects" : object_count, "Object Id": object_id };   
+		var output_json = {};
+		output_json[entity_name + " Count"] = object_count;
+		output_json[entity_name + " Id"] = object_id;
 		var output_string = JSON.stringify(output_json);    
 		send_message(response, '200', 'Success', output_string);
 	    }
@@ -64,6 +66,31 @@ var create_object= function(entity_name, request, response, options) {
   } catch (err) {
       send_message(response, '500', 'There was an error with your request');
   }
+}
+
+var get_all_objects = function(entity, request, response, options ) {
+    //pulls file from sharefile and loads into redis if it's not already there                    
+ try {
+    get_subdomain_id(options, function(subdomain_id){
+        var key = subdomain_id +":"+ entity;
+        console.log(key);
+	var start = 0;
+	var end = -1;
+        redclient.lrange(key, start, end, function(err, object_string) {
+            if ((err) || (!object_string))  {
+                send_message(response, '500', 'There was an error with your request');
+            } else {
+                console.log(object_string); //prints 2  
+                var object_json = {};
+		object_json[entity] = object_string;
+                send_message(response, '200', 'Success', JSON.stringify(object_json));
+            }
+        });
+    });
+ } catch (err){
+      send_message(response, '500', 'There was an error with your request');
+  }
+
 }
 
 var get_object = function(id, entity, request, response, options ) {
@@ -272,5 +299,7 @@ module.exports = {
     delete_property: delete_property,
     get_property: get_property,
     create_property: create_property,
-    update_property: update_property
+    update_property: update_property,
+    get_all_objects: get_all_objects
+
 }
