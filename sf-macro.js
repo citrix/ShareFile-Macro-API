@@ -12,6 +12,7 @@ var files_client = require("./endpoints/sf-files");
 var users_client = require("./endpoints/sf-users");
 var groups_client = require("./endpoints/sf-groups");
 var stream_client = require("./endpoints/sf-streams");
+var object_client = require("./endpoints/sf-objects");
 var sfauth = require("./sf-authenticate");
 var bodyParser = require('body-parser');
 var crypto = require("crypto");
@@ -169,6 +170,64 @@ app.all('/files*', function(request, response) {
 	    files_client.get_file (file_array, new_path, request, response, set_options, cookie);
 	else if (request.method == 'POST')
 	    files_client.post_file (file_array, new_path, request, response, set_options, cookie);
+    });
+});
+
+app.all('/object/:entity', function(request, response) {
+    console.log ("-C-> "+request.method+" "+request.path);
+    var new_path = buildNewPath(request.path);
+    console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
+    request.path = new_path;
+    var file_array = new_path.split("/");
+    var entity_name = request.params.entity;
+    sfauth.set_security (request, response, my_options, new_path, function(set_options, cookie) {
+	if (request.method == 'GET') {
+	    object_client.get_all_objects(entity_name, request, response, set_options);
+	} else {
+            object_client.create_object(entity_name, request, response, set_options);
+	}
+    });
+
+});
+
+app.all('/object/:entity/:id', function(request, response) {
+    console.log ("-C-> "+request.method+" "+request.path);
+    var new_path = buildNewPath(request.path);
+    console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
+    request.path = new_path;
+    var file_array = new_path.split("/");
+
+    sfauth.set_security (request, response, my_options, new_path, function(set_options, cookie) {
+        var entity_name = request.params.entity;
+	var id = request.params.id;
+        if (request.method == 'DELETE')
+            object_client.delete_object (id, entity_name, request, response, set_options);
+        else if (request.method == 'GET')
+            object_client.get_object (id, entity_name, request, response, set_options);
+        else if (request.method == 'PATCH')
+            object_client.update_object (id, entity_name, request, response, set_options);
+    });
+});
+
+app.all('/object/:entity/:id/:property', function(request, response) {
+    console.log ("-C-> "+request.method+" "+request.path);
+    var new_path = buildNewPath(request.path);
+    console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
+    request.path = new_path;
+    var file_array = new_path.split("/");
+
+    sfauth.set_security (request, response, my_options, new_path, function(set_options, cookie) {
+        var entity_name = request.params.entity;
+        var id = request.params.id;
+	var property = request.params.property;
+        if (request.method == 'DELETE')
+            object_client.delete_property (id, entity_name, property, request, response, set_options);
+        else if (request.method == 'GET')
+            object_client.get_property (id, entity_name, property, request, response, set_options);
+        else if (request.method == 'PATCH')
+            object_client.update_property (id, entity_name, property, request, response, set_options);
+	else if (request.method == 'POST')
+            object_client.create_property (id, entity_name, property, request, response, set_options);
     });
 });
 
