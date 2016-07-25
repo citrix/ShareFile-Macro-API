@@ -1,4 +1,5 @@
 var https = require('https');
+var http = require('http');
 var url = require('url');
 var querystring = require("querystring");
 var beautify = require("js-beautify").js_beautify;
@@ -13,7 +14,6 @@ var delete_tail=')?singleversion=false&forceSync=false';
 
 var file_options = {
     hostname: 'zzzz.sf-api.com',  // this is over-written at runtime
-    port: '443',
     path: '', // this is over-written at runtime
     method: 'GET',
 };
@@ -503,8 +503,17 @@ var post_file = function(file_array, new_path, request, response, my_options, co
 			var myurl = url.parse(remote_url);
 			file_options.hostname = myurl.hostname;
 			file_options.path = myurl.path;
+			var connection = http; 
+			if (myurl.protocol == 'https') {
+			    console.log("Remote URL is https");
+			    connection = https;
+			}
+			else
+			    console.log("Remote URL is http");
+
 			console.log("<-B-: " + JSON.stringify(file_options));
-			var file_request = https.request(file_options, function(file_response) {
+
+			var file_request = connection.request(file_options, function(file_response) {
 			    console.log("-B->: [" + file_response.statusCode + "] : [" + JSON.stringify(file_response.headers) + "]");
 			    var file_contents = [];
 			    file_response.on('data', function (chunk) {
