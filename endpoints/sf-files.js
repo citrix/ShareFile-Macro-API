@@ -503,8 +503,8 @@ var post_file = function(file_array, new_path, request, response, my_options, co
 			var myurl = url.parse(remote_url);
 			file_options.hostname = myurl.hostname;
 			file_options.path = myurl.path;
-			var connection = http; 
-			if (myurl.protocol == 'https') {
+			var connection = http;
+			if (myurl.protocol == 'https:') {
 			    console.log("Remote URL is https");
 			    connection = https;
 			}
