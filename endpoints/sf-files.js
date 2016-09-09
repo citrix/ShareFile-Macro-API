@@ -38,7 +38,7 @@ var send_message = function(response, status, message, fields, skipWrap) {
 }
 
 var clear_cookie = function(response) {
-    var clear_cookie = 'Ado=deleted; domain=.ddns.net; path=/; expires='+Date.now();
+    var clear_cookie = 'Ado=deleted; domain=.cloud.com; path=/; expires='+Date.now();
     console.log ("Attempting to clear bad cookie by setting it to: "+clear_cookie);
     response.setHeader('set-cookie', clear_cookie);
     response.setHeader('Access-Control-Allow-Origin', '*');
@@ -55,10 +55,10 @@ var set_cookie = function(response, old_cookie) {
 	if (temp_items[0]=='SFAPI_AuthID') // carry it through
 	    new_cookie = new_cookie + 'Ado=' + temp_items[1];
 	else if (temp_items[0]==' domain') // rename the cookie and insert the domain one
-	    new_cookie = new_cookie + ":" + temp_items[1] + '; domain=.ddns.net;';
+	    new_cookie = new_cookie + ":" + temp_items[1] + '; domain=.cloud.com;';
 	
 	/// break cookie to test
-	// new_cookie = "Ado=garbage:blah.sf-api.com; domain=.ddns.net";
+	// new_cookie = "Ado=garbage:blah.sf-api.com; domain=.cloud.com";
     }
     new_cookie += 'path=/;'; // apply to the whole site
     console.log("new cookie: "+new_cookie);
