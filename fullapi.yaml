@@ -5,10 +5,10 @@ info:
   description: v3 API
   version: "3.0.1"
 # the domain of the service
-host: sf-macro-prod.ddns.net:8080
+host: services-api.cloud.com:8443
 # array of all schemes that your API supports
 schemes:
-  - http
+  - https
 # will be prefixed to all paths
 basePath: /
 produces:
