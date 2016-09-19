@@ -19,16 +19,27 @@ var crypto = require("crypto");
 var redis = require("redis");
 var beautify = require("js-beautify").js_beautify;
 
-var redis_path = '/home/azureuser/citrix/ShareFile-env/sf-redis.js'; // used to specify a redis server
+var env_dir = '/home/azureuser/citrix/ShareFile-env/'
+
+var settings_path = env_dir + 'sf-settings.js';
+var settings;
+if (fs.existsSync(settings_path)) {
+    var settings_info = require(settings_path);
+    settings = settings_info.settings;
+    app.set('port', settings.port);
+}
+else {
+    console.log("Missing sf-settings.js file. Exiting");
+    process.exit(-1);
+}
+
+var redis_path = env_dir + 'sf-redis.js'; // used to specify a redis server
 if (fs.existsSync(redis_path)) {
     var redis_info = require(redis_path);
     console.log ("Using this Redis server: " + JSON.stringify(redis_info));
     var redclient = redis.createClient(redis_info.redis_host);
 } else  //  try to connect to a local host
     var redclient = redis.createClient({port:5001});
-
-
-app.set('port', (process.env.PORT || 8080 ));
 
 app.use(express.static(__dirname + '/public'));
 
@@ -131,6 +142,7 @@ function buildNewPath(request_path) {
 }
 
 app.options('*', function(request, response) {
+    console.log("Current time is: " + new Date().toJSON());
     console.log ("-C-> OPTIONS "+request.path+" ["+JSON.stringify(request.headers)+"]");
 
     response.status(200);
@@ -174,6 +186,7 @@ app.all('/files*', function(request, response) {
 });
 
 app.all('/object/:entity', function(request, response) {
+    console.log("Current time is: " + new Date().toJSON());
     console.log ("-C-> "+request.method+" "+request.path);
     var new_path = buildNewPath(request.path);
     console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
@@ -191,6 +204,7 @@ app.all('/object/:entity', function(request, response) {
 });
 
 app.all('/object/:entity/:id', function(request, response) {
+    console.log("Current time is: " + new Date().toJSON());
     console.log ("-C-> "+request.method+" "+request.path);
     var new_path = buildNewPath(request.path);
     console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
@@ -210,6 +224,7 @@ app.all('/object/:entity/:id', function(request, response) {
 });
 
 app.all('/object/:entity/:id/:property', function(request, response) {
+    console.log("Current time is: " + new Date().toJSON());
     console.log ("-C-> "+request.method+" "+request.path);
     var new_path = buildNewPath(request.path);
     console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
@@ -232,6 +247,7 @@ app.all('/object/:entity/:id/:property', function(request, response) {
 });
 
 app.post('/streams/create*', function(request, response) {
+    console.log("Current time is: " + new Date().toJSON());
     console.log ("-C-> "+request.method+" "+request.path);
     var new_path = buildNewPath(request.path);
     console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
@@ -245,6 +261,7 @@ app.post('/streams/create*', function(request, response) {
 });
 
 app.all('/streams/:id*', function(request, response) {
+    console.log("Current time is: " + new Date().toJSON());
     console.log ("-C-> "+request.method+" "+request.path);
     var new_path = buildNewPath(request.path);
     console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
@@ -354,6 +371,7 @@ app.all('/*', function(req, res) {
 });
 
 app.get('/allusers', function(request, response) {
+    console.log("Current time is: " + new Date().toJSON());
     console.log ("-C-> GET "+request.path);
     var user_array = request.path.split("/");
 
@@ -372,7 +390,11 @@ app.get('/allusers', function(request, response) {
    
 });
 
-
-app.listen(app.get('port'), function() {
-    console.log("Node app is running at localhost:" + app.get('port'));
-});
+var secureServer = https.createServer({
+    key: fs.readFileSync(env_dir + 'cloud.key'),
+    cert: fs.readFileSync(env_dir + 'cloud.crt'),
+    ca: fs.readFileSync(env_dir + 'ca.crt'),
+    requestCert: true,
+    rejectUnauthorized: false}, app).listen(app.get('port'), function() {
+	console.log("Node app is running at localhost:" + app.get('port'));
+    });

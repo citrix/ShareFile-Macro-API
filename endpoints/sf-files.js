@@ -1,8 +1,10 @@
 var https = require('https');
 var http = require('http');
 var url = require('url');
+var fs = require('fs');
 var querystring = require("querystring");
 var beautify = require("js-beautify").js_beautify;
+var sfauth = require("../sf-authenticate");
 
 var itempath_home = '/sf/v3/Items(home)';
 var itempath_byID = '/sf/v3/Items(';
@@ -11,6 +13,21 @@ var itempath_byPath = '/sf/v3/Items/ByPath?path=';
 var folderpath_tail = '/Children?includeDeleted=false'  // include all children in items call
 var downloadpath_tail =')/Download?includeallversions=false';
 var delete_tail=')?singleversion=false&forceSync=false';
+
+var env_dir = '/home/azureuser/citrix/ShareFile-env/'
+
+var settings_path = env_dir + 'sf-settings.js';
+var settings;
+
+if (fs.existsSync(settings_path)) {
+    var settings_info = require(settings_path);
+    settings = settings_info.settings;
+}
+else {
+    console.log("Missing sf-settings.js file. Exiting");
+    process.exit(-1);
+}
+
 
 var file_options = {
     hostname: 'zzzz.sf-api.com',  // this is over-written at runtime
@@ -36,35 +53,6 @@ var send_message = function(response, status, message, fields, skipWrap) {
     response.send(beautify(send_msg));
     response.end();
 }
-
-var clear_cookie = function(response) {
-    var clear_cookie = 'Ado=deleted; domain=.cloud.com; path=/; expires='+Date.now();
-    console.log ("Attempting to clear bad cookie by setting it to: "+clear_cookie);
-    response.setHeader('set-cookie', clear_cookie);
-    response.setHeader('Access-Control-Allow-Origin', '*');
-}
-
-var set_cookie = function(response, old_cookie) {
-    console.log("cookie: "+old_cookie);
-    var temp_cookies = old_cookie.split(";");
-    var new_cookie = '';
-    for (i in temp_cookies) {
-	// console.log("i in temp_cookies: "+temp_cookies[i]);
-	var temp_items = temp_cookies[i].split("=");
-	// console.log("here "+temp_items[0]+ ":::" + temp_items[1]);
-	if (temp_items[0]=='SFAPI_AuthID') // carry it through
-	    new_cookie = new_cookie + 'Ado=' + temp_items[1];
-	else if (temp_items[0]==' domain') // rename the cookie and insert the domain one
-	    new_cookie = new_cookie + ":" + temp_items[1] + '; domain=.cloud.com;';
-	
-	/// break cookie to test
-	// new_cookie = "Ado=garbage:blah.sf-api.com; domain=.cloud.com";
-    }
-    new_cookie += 'path=/;'; // apply to the whole site
-    console.log("new cookie: "+new_cookie);
-    response.setHeader('set-cookie', new_cookie);
-}
-
 
 var delete_file = function(file_array, new_path, request, response, my_options, cookie) {
     // This function does the following things:
@@ -107,7 +95,7 @@ var delete_file = function(file_array, new_path, request, response, my_options, 
 	    var err_msg = 'Unrecognized internal error';
 	    if (item_response.statusCode == 401) {
 		if (request.headers.cookie) // a cookie was passed in
-		    clear_cookie(response);
+		    sfauth.clear_cookie(response);
 		err_msg = 'Unauthorized access';
 	    } else if (item_response.statusCode == 404) {
 		err_msg = 'Folder or file not found: ' + querystring.unescape(request.path);
@@ -117,7 +105,7 @@ var delete_file = function(file_array, new_path, request, response, my_options, 
 	}
 	
 	if (!cookie) { // need to snag cookie from response and propagate back to client
-	    set_cookie(response, item_response.headers['set-cookie'][0]);
+	    sfauth.set_cookie(response, item_response.headers['set-cookie'][0]);
 	}
 	
 	var item_contents = [];
@@ -231,7 +219,7 @@ var get_file = function(file_array, new_path, request, response, my_options, coo
 	    var err_msg = 'Unrecognized internal error';
 	    if (item_response.statusCode == 401) {
 		if (request.headers.cookie) // a cookie was passed in
-		    clear_cookie(response);
+		    sfauth.clear_cookie(response);
 		err_msg = 'Unauthorized access';
 	    } else if (item_response.statusCode == 404) {
 		err_msg = 'Folder or file not found: ' + querystring.unescape(request.path);
@@ -241,7 +229,7 @@ var get_file = function(file_array, new_path, request, response, my_options, coo
 	}
 
 	if (!cookie) { // need to snag cookie from response and propagate back to client
-	    set_cookie(response, item_response.headers['set-cookie'][0]);
+	    sfauth.set_cookie(response, item_response.headers['set-cookie'][0]);
 	}
 	
 	var item_contents = [];
@@ -460,7 +448,7 @@ var post_file = function(file_array, new_path, request, response, my_options, co
 	    var err_msg = 'Unrecognized internal error';
 	    if (item_response.statusCode == 401) {
 		if (request.headers.cookie) // a cookie was passed in 
-		    clear_cookie(response);
+		    sfauth.clear_cookie(response);
 		err_msg = 'Unauthorized access';
 	    } else if (item_response.statusCode == 404) {
 		err_msg = 'Folder or file not found: ' + querystring.unescape(request.path);
@@ -470,7 +458,7 @@ var post_file = function(file_array, new_path, request, response, my_options, co
 	}
 
 	if (!cookie) { // need to snag cookie from response and propagate back to client
-	    set_cookie(response, item_response.headers['set-cookie'][0]);
+	    sfauth.set_cookie(response, item_response.headers['set-cookie'][0]);
 	}
 	
 	var resultString = '';
