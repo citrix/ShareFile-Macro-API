@@ -25,8 +25,7 @@ var get_user = function(user_id, request, response, my_options, cookie) {
 	    });
 
 
-    });
-    
+    });    
     return;
 }
 
