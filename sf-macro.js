@@ -14,6 +14,7 @@ var groups_client = require("./endpoints/sf-groups");
 var stream_client = require("./endpoints/sf-streams");
 var object_client = require("./endpoints/sf-objects");
 var sfauth = require("./sf-authenticate");
+var podioauth = require("./podio-authenticate");
 var bodyParser = require('body-parser');
 var crypto = require("crypto");
 var redis = require("redis");
@@ -173,6 +174,286 @@ app.all('/files*', function(request, response) {
     });
 });
 
+
+
+app.all('/podio*', function(request, response){
+
+    podio_proxy(request, response);
+
+});
+
+app.all('/action*', function(request, response){
+
+    podio_proxy(request, response);
+
+});
+
+app.all('/alert*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+
+app.all('/app_store*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/app*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/batch*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/calendar*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/conversation*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/comment*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/contact*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/mobile*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+
+app.all('/email*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+
+app.all('/embed*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/flow*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/form*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/friend*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/grant*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/import*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/integration*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/layout*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/linked_account*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+
+app.all('/notification*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/organization*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/question*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/rating*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/recurrence*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/reference*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/reminder*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+
+app.all('/search*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+
+app.all('/space*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/stream*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+
+app.all('/subscription*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+
+app.all('/tag*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/view*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/vote*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/widget*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+
+
+function podio_proxy(request, response) {
+    console.log ("-C-> "+request.method+" "+request.path);
+    var new_path = buildNewPath(request.path);
+    console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
+    request.path = new_path;
+    var file_array = new_path.split("/");
+    var entity_name = request.params.entity;
+    console.log("Going to Podio");
+    podioauth.set_security (request, response, my_options, new_path, function(set_options, cookie) {
+	set_options.method = retrieveMethod(request);
+        var body = retrieveBody(request);
+        if (body) {
+            set_options.headers['Content-Length'] = Buffer.byteLength(body);
+
+        }
+        var entity = capitalizeFirstLetter(request.url);
+        var url_path = entity;
+        console.log(url_path);
+        set_options.path = url_path
+	set_options.method = retrieveMethod(request);
+
+        console.log("<-B-: " + JSON.stringify(set_options));
+
+        var api_request = https.request(set_options, function(api_response) {
+            var resultString = "";
+                console.log(api_response.statusCode);
+            api_response.on('data', function (chunk) {
+                resultString+=chunk;
+            });
+            api_response.on('end', function (chunk) {
+                console.log("-B->: [" + api_response.statusCode + "] : [" + JSON.stringify(api_response.headers) + "]");
+
+
+                response.setHeader('Access-Control-Allow-Origin', '*');
+                response.status(200);
+                response.setHeader('content-type', 'application/json');
+                response.send(beautify(resultString));
+                response.end();
+            });
+            });
+        if (body) {
+            api_request.write(body);
+        }
+        api_request.end();
+
+        return;
+    });
+
+}
+
+
+
 app.all('/object/:entity', function(request, response) {
     console.log ("-C-> "+request.method+" "+request.path);
     var new_path = buildNewPath(request.path);
@@ -261,6 +542,56 @@ app.all('/streams/:id*', function(request, response) {
             stream_client.save_stream (id, new_path, request, response, set_options, cookie);
 	else if (request.method == 'PATCH')
 	    stream_client.update_stream (id, new_path, request, response, set_options, cookie);
+    });
+});
+
+app.all('/*/:id/:subnav/:subid', function(req, res) {
+    console.log("------/*/:id----------"+getDateTime()+"-------------");
+    console.log(req.path);
+    sfauth.set_security (req, res, my_options, req.url, function(set_options, cookie) {
+        var id = req.params.id;
+	var subnav = req.params.subnav;
+	var subnav_id = req.params.subnav_id
+        var req_array = req.path.split("/");
+        var sub_nav = "";
+     
+        set_options.method = retrieveMethod(req);
+        var body = retrieveBody(req);
+
+        if (body) {
+            set_options.headers['Content-Length'] = Buffer.byteLength(body);
+        }
+        var entity = capitalizeFirstLetter(req_array[1]);
+        var url_path = '/sf/v3/' + entity + '(' + id + ')/' +  subnav + '(' + subnav_id + ')';
+        console.log("ID: " + id);
+        console.log(url_path);
+        set_options.path = url_path
+       //set_options.hostname = set_options.headers.Host;                                                                                    
+        console.log("<-B-: " + JSON.stringify(set_options));
+
+        var api_request = https.request(set_options, function(api_response) {
+            var resultString = "";
+	        console.log(api_response.statusCode);
+            api_response.on('data', function (chunk) {
+                resultString+=chunk;
+            });
+            api_response.on('end', function (chunk) {
+                console.log("-B->: [" + api_response.statusCode + "] : [" + JSON.stringify(api_response.headers) + "]");
+
+
+                res.setHeader('Access-Control-Allow-Origin', '*');
+                res.status(200);
+		res.setHeader('content-type', 'application/json');
+                res.send(beautify(resultString));
+                res.end();
+            });
+	    });
+        if (body) {
+            api_request.write(body);
+        }
+        api_request.end();
+
+        return;
     });
 });
 
