@@ -293,7 +293,13 @@ podio_proxy(request, response);
 
 });
 
-app.all('/import*', function(request, response){
+app.all('/hook*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
+app.all('/importer*', function(request, response){
 
 podio_proxy(request, response);
 
@@ -324,7 +330,7 @@ podio_proxy(request, response);
 
 });
 
-app.all('/organization*', function(request, response){
+app.all('/org*', function(request, response){
 
 podio_proxy(request, response);
 
@@ -374,6 +380,12 @@ podio_proxy(request, response);
 
 });
 
+app.all('/status*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
 app.all('/stream*', function(request, response){
 
 podio_proxy(request, response);
@@ -394,13 +406,19 @@ podio_proxy(request, response);
 
 });
 
+app.all('/task*', function(request, response){
+
+podio_proxy(request, response);
+
+});
+
 app.all('/view*', function(request, response){
 
 podio_proxy(request, response);
 
 });
 
-app.all('/vote*', function(request, response){
+app.all('/voting*', function(request, response){
 
 podio_proxy(request, response);
 
