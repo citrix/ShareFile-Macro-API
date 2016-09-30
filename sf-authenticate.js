@@ -10,9 +10,22 @@ var querystring = require("querystring");
 
 var this_host = os.hostname();
 console.log("Local hostname is " + this_host);
+console.log("System start at time: " + new Date().toJSON());
+var env_dir = '/home/azureuser/citrix/ShareFile-env/';
+
+var settings_path = env_dir + 'sf-settings.js';
+var settings;
+if (fs.existsSync(settings_path)) {
+    var settings_info = require(settings_path);
+    settings = settings_info.settings;
+}
+else {
+    console.log("Missing sf-settings.js file. Exiting");
+    process.exit(-1);
+}
 
 var test_cookie; // used only for testing
-var cookie_path = '/home/azureuser/citrix/ShareFile-env/sf-cookie.js'; // used only for testing
+var cookie_path = env_dir + 'sf-cookie.js'; // used only for testing
 if (fs.existsSync(cookie_path)) {
     var cookie_info = require(cookie_path);  // used only for testing
     test_cookie = cookie_info.cookie_context.cookie;  // used only for testing
@@ -20,8 +33,7 @@ if (fs.existsSync(cookie_path)) {
 var test_user; // used only for testing
 var test_pw; // used only for testing
 var test_domain; // used only for testing
-var creds_path = '/home/azureuser/citrix/ShareFile-env/sf-creds.js'; // used only for testing (and default account in prod)
-
+var creds_path = env_dir + 'sf-creds.js'; // used only for testing (and default account in prod)
 
 // Expects a file called 'sf-keys.js' with the following key information from ShareFile API registration:
 // var key_context = {
@@ -29,7 +41,7 @@ var creds_path = '/home/azureuser/citrix/ShareFile-env/sf-creds.js'; // used onl
 //   client_secret: "yyyyyyyyyyyy",
 //   redirect: "http://yourredirecturlhere.com"
 // }    
-var key_info = require('/home/azureuser/citrix/ShareFile-env/sf-keys.js');  // API keys and developer's info
+var key_info = require(env_dir + 'sf-keys.js');  // API keys and developer's info
 var key_context = key_info.key_context;
 var client_id = key_context.client_id;
 var client_secret = key_context.client_secret;
@@ -58,7 +70,7 @@ var get_token_options = {
 //setup cache connection
 var crypto = require("crypto");
 var redis = require("redis");
-var redis_path = '/home/azureuser/citrix/ShareFile-env/sf-redis.js'; // used to specify a redis server
+var redis_path = env_dir + 'sf-redis.js'; // used to specify a redis server
 if (fs.existsSync(redis_path)) {
     var redis_info = require(redis_path);
     console.log ("Using this Redis server: " + JSON.stringify(redis_info));
@@ -88,7 +100,7 @@ var redirect = function(req, resp,  new_path) {
     }
     if (hashcode)
         my_query +='hashcode='+hashcode;	
-    var parameters = "https://secure.sharefile.com/oauth/authorize?response_type=code&client_id="+client_id+"&redirect_uri="+redirect_url+":8080"+new_path+my_query; 
+    var parameters = "https://secure.sharefile.com/oauth/authorize?response_type=code&client_id="+client_id+"&redirect_uri="+redirect_url+":"+settings.port+new_path+my_query; 
     console.log ("<-C- Redirect to " + parameters);
     resp.redirect(parameters);
 };
@@ -144,7 +156,7 @@ var set_security = function (request, response, my_options, new_path, callback) 
     // B) First time through and we have no other security cred except username and password, we can use that to get a token. This requires having the subdomain in another query string.  This is the fourth priority security cred.
     // C) Second time through, a request code exists that can be exchanged for an access token.  This is provided in a query string and the subdomain is provided in another query string.  This is the third priority security cred.
     // D) Alternatively, there is an authorization header with the access bearer token, further host header contains the subdomain. This is the second priority credential (only used if D is not present).
-    // E) Lastly, there is an SFAPI_AuthID and domain cookie which is used to avoid further auth/auth checks.  This is enconded in an inbound cookie called "Ado" with the form xxxxxx:zzz.sf-api.com where xxxxxx is the ShareFile cookie and zzz is the subdomain.  The presence of this cookie overrides any other security credential received.
+    // E) Lastly, there is an SFAPI_AuthID and domain cookie which is used to avoid further auth/auth checks.  This is enconded in an inbound cookie called "Services" with the form xxxxxx:zzz.sf-api.com where xxxxxx is the ShareFile cookie and zzz is the subdomain.  The presence of this cookie overrides any other security credential received.
     
     var code = request.query.code;
     var token = '';
@@ -164,7 +176,7 @@ var set_security = function (request, response, my_options, new_path, callback) 
     }
     
     if (request.headers.cookie) {  // If there is a cookie, make sure it is valid
-	var temp_cookies = (request.headers.cookie).split("Ado=");
+	var temp_cookies = (request.headers.cookie).split("Services=");
 	if (temp_cookies.length == 2) {
 	    var val_cookie = (temp_cookies[1]).split(':');
 	    if (val_cookie.length == 2) {
@@ -246,7 +258,7 @@ var set_security = function (request, response, my_options, new_path, callback) 
 		    var token = JSON.parse(result).access_token;
 		    if (this_host != 'adolfo-ubuntu2') { // exclude the production server, don't save tokens there
 			var token_json = "var token_context = { token: \"" + token + "\"}; exports.token_context = token_context; // This file is automatically generated by sf-authenticate.js for use by sf-client.js for testing.  It should never be checked into Github.  Confidential.";
-			fs.writeFile("/home/azureuser/citrix/ShareFile-env/sf-token.js", token_json, function(err) {
+			fs.writeFile(env_dir + "sf-token.js", token_json, function(err) {
 			    if(err) {
 				return console.log(err);
 			    }
@@ -265,6 +277,36 @@ var set_security = function (request, response, my_options, new_path, callback) 
 	}
     }
 }
+
+
+var clear_cookie = function(response) {
+    var clear_cookie = 'Services=deleted; domain=' + settings.hostname + '; path=/; expires='+Date.now();
+    console.log ("Attempting to clear bad cookie by setting it to: "+clear_cookie);
+    response.setHeader('set-cookie', clear_cookie);
+    response.setHeader('Access-Control-Allow-Origin', '*');
+}
+
+var set_cookie = function(response, old_cookie) {
+    console.log("cookie: "+old_cookie);
+    var temp_cookies = old_cookie.split(";");
+    var new_cookie = '';
+    for (i in temp_cookies) {
+	// console.log("i in temp_cookies: "+temp_cookies[i]);
+	var temp_items = temp_cookies[i].split("=");
+	// console.log("here "+temp_items[0]+ ":::" + temp_items[1]);
+	if (temp_items[0]=='SFAPI_AuthID') // carry it through
+	    new_cookie = new_cookie + 'Services=' + temp_items[1];
+	else if (temp_items[0]==' domain') // rename the cookie and insert the domain one
+	    new_cookie = new_cookie + ":" + temp_items[1] + '; domain=' + settings.hostname + ';';
+	
+	/// break cookie to test
+	// new_cookie = "Services=garbage:blah.sf-api.com; domain:"+settings.hostname;
+    }
+    new_cookie += 'path=/;'; // apply to the whole site
+    console.log("new cookie: "+new_cookie);
+    response.setHeader('set-cookie', new_cookie);
+}
+
 
 function generateCacheHash(req){
     var current_date = (new Date()).valueOf().toString();
@@ -285,5 +327,7 @@ function generateCacheHash(req){
 }
 
 module.exports = {
-    set_security: set_security
+    set_security: set_security,
+    clear_cookie: clear_cookie,
+    set_cookie: set_cookie
 }

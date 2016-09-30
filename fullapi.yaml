@@ -5,10 +5,10 @@ info:
   description: v3 API
   version: "3.0.1"
 # the domain of the service
-host: sf-macro-prod.ddns.net:8080
+host: services-api.cloud.com:8443
 # array of all schemes that your API supports
 schemes:
-  - http
+  - https
 # will be prefixed to all paths
 basePath: /
 produces:
@@ -72,7 +72,8 @@ paths:
           in: body
           description: Contents of the file to be uploaded
           required: false
-          type: string
+          schema:
+            type: string
         - $ref: '#/parameters/Authorization'
         - $ref: '#/parameters/Cookie'
         - $ref: '#/parameters/code'
@@ -1245,7 +1246,266 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'   
-
+            
+  /object/{ObjectName}:
+    get:
+      summary: Objects allow you to create a simple JSON database.  Simply post the json data to an entity name of your choosing and it will create a new table where you can get, create, update and delete json data 
+      description: Gets all objects with given entity name
+      parameters:
+        - name: ObjectName
+          in: path
+          type: string
+          description: Unique name for the Object
+          required: true
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Objects
+      responses:
+        200:
+          description: List of Objects that were inserted into the table
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      summary: Create New Object
+      description: Adds Object to table or creates a new table if none exists
+      parameters:
+        - name: ObjectName
+          in: path
+          description: Unique name for the Object
+          required: true
+          type: string
+        - name: jsonData
+          in: body
+          description: JSON data - you can use any JSON format you would like here - "jsonData" is just a place holder
+          schema:
+            type: string
+          required: true
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Objects
+      responses:
+        200:
+          description: Id for the new entry is returned as well as entity count
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /object/{ObjectName}/{ObjectIdentifier}/:
+    get:
+      summary: Get specific entity
+      description: Get a specific entity by id
+      parameters:
+        - name: ObjectName
+          in: path
+          description: Unique name for the Object
+          required: true
+          type: string
+        - name: ObjectIdentifier
+          in: path
+          description: Unique Identifier for the Object
+          required: true
+          type: string
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Objects
+      responses:
+        200:
+          description: Object JSON information
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    patch:
+      summary: Modify a specific entity
+      description: Pass in any additional parameters for the entity by id, new properties will be added and properties of the same name will be overwritten
+      parameters:
+        - name: ObjectName
+          in: path
+          description: Unique name for the Object
+          required: true
+          type: string
+        - name: ObjectIdentifier
+          in: path
+          description: Unqiue Identifier for the Object 
+          required: true
+          type: string
+        - name: jsonData
+          in: body
+          description: JSON data - you can use any JSON format you would like here - "jsonData" is just a place holder
+          required: true
+          schema:
+            type: string
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Objects
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Remove specific object from database
+      description: Removes the object data from the table
+      parameters:
+        - name: ObjectName
+          in: path
+          description: Unique name for the Object
+          required: true
+          type: string
+        - name: ObjectIdentifier
+          in: path
+          description: Unique Identifier for the Object
+          required: true
+          type: string
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Objects
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /object/{ObjectName}/{ObjectIdentifier}/{PropertyName}:
+    get:
+      summary: Get specific property on an object
+      description: Get a specific property for an object by id
+      parameters:
+        - name: ObjectName
+          in: path
+          description: Unique name for the Object
+          required: true
+          type: string
+        - name: ObjectIdentifier
+          in: path
+          description: Unique Identifier for the Object
+          required: true
+          type: string
+        - name: PropertyName
+          in: path
+          description: Unique name for the Object Property
+          required: true
+          type: string
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Objects
+      responses:
+        200:
+          description: Object JSON information
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    patch:
+      summary: Modify a specific object property
+      description: Creates or updates JSON data on the property.  Property stores a full JSON object instead of a simple string.  If you only want to modify the property as a string use the PATCH /object/{ObjectName}/{ObjectIdentifier} endpoint
+      parameters:
+        - name: ObjectName
+          in: path
+          description: Unique name for the Object
+          required: true
+          type: string
+        - name: ObjectIdentifier
+          in: path
+          description: Unqiue Identifier for the Object 
+          required: true
+          type: string
+        - name: PropertyName
+          in: path
+          description: Unique name for the Object Property
+          required: true
+          type: string
+        - name: jsonData
+          in: body
+          description: JSON data - you can use any JSON format you would like here - "jsonData" is just a place holder
+          required: true
+          schema:
+            type: string
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Objects
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Remove specific property from the object
+      description: Removes the object property
+      parameters:
+        - name: ObjectName
+          in: path
+          description: Unique name for the Object
+          required: true
+          type: string
+        - name: ObjectIdentifier
+          in: path
+          description: Unique Identifier for the Object
+          required: true
+          type: string
+        - name: PropertyName
+          in: path
+          description: Unique name for the Object Property
+          required: true
+          type: string
+        - $ref: '#/parameters/Authorization'
+        - $ref: '#/parameters/Cookie'
+        - $ref: '#/parameters/code'
+        - $ref: '#/parameters/subdomain'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/password'
+      tags:
+        - Objects
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+            
 definitions:
   Shares:
     type: object

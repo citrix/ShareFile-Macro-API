@@ -12,22 +12,22 @@ var message='{"msg":"hi"}';
 var msg_len=message.length;
 
 var post_options = {
-    hostname: 'sf-macro-prod.ddns.net',
+    hostname: 'services-api.cloud.com',
     method: 'POST',
-    port: '5000',
+    port: '8080',
     headers: {
 	'Host': 'adolfo.sf-api.com',
 	'Authorization': 'Bearer: '+token,
 	'Content-Type': 'text/plain', 
 	'Content-Length': msg_len
     },
-    // path: '/files/'+querystring.escape('My Files & Folders')+ '/sample.txt',
-    path: '/files/foadfd5d-6888-4e5a-8108-6fbae10ec22c/sample.txt',
+    path: '/files/'+querystring.escape('My Files & Folders')+ '/sample.txt',
+    // path: '/files/foadfd5d-6888-4e5a-8108-6fbae10ec22c/sample.txt',
 };
 
 var get_options = {
-    hostname: 'sf-macro-prod.ddns.net',
-    port: '5000',
+    hostname: 'services-api.cloud.com',
+    port: '8080',
     path: '/files/rs.txt',
     method: 'GET',
 };
