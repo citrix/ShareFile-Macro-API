@@ -10,6 +10,22 @@ var querystring = require("querystring");
 
 var this_host = os.hostname();
 console.log("Local hostname is " + this_host);
+console.log("System start at time: " + new Date().toJSON());
+var env_dir = '/home/azureuser/citrix/ShareFile-env/';
+
+var settings_path = env_dir + 'podio-settings.js';
+var settings;
+if (fs.existsSync(settings_path)) {
+    var settings_info = require(settings_path);
+    settings = settings_info.settings;
+}
+else {
+    console.log("Missing podio-settings.js file. Exiting");
+    process.exit(-1);
+}
+
+var this_host = os.hostname();
+console.log("Local hostname is " + this_host);
 
 var test_cookie; // used only for testing
 var cookie_path = '/home/azureuser/citrix/ShareFile-env/podio-cookie.js'; // used only for testing
@@ -88,7 +104,7 @@ var redirect = function(req, resp,  new_path) {
     }
     if (hashcode)
         my_query +='hashcode='+hashcode;	
-    var parameters = "https://podio.com/oauth/authorize?client_id="+client_id+"&redirect_uri="+redirect_url+":8080"+new_path+my_query; 
+    var parameters = "https://podio.com/oauth/authorize?client_id="+client_id+"&redirect_uri="+redirect_url+":"+settings.port+new_path+my_query; 
     console.log ("<-C- Redirect to " + parameters);
     resp.redirect(parameters);
 };
