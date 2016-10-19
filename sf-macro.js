@@ -430,6 +430,12 @@ podio_proxy(request, response);
 
 });
 
+app.all('/object*', function(request, response){
+
+podio_forwarder(request, response, "object", "item");
+
+});
+
 
 
 function podio_proxy(request, response) {
@@ -482,9 +488,59 @@ function podio_proxy(request, response) {
 
 }
 
+function podio_forwarder(request, response, orig_entity, new_entity) {
+    console.log ("-C-> "+request.method+" "+ new_entity);
+    var new_path = buildNewPath(request.path);
+    console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
+    request.path = new_path;
+    var file_array = new_path.split("/");
+    console.log("Going to Podio");
+    podioauth.set_security (request, response, my_options, new_path, function(set_options, cookie) {
+        set_options.method = retrieveMethod(request);
+        var body = retrieveBody(request);
+        if (body) {
+            set_options.headers['Content-Length'] = Buffer.byteLength(body);
+
+        }
+	var request_url = request.url.replace(orig_entity, new_entity);
+	console.log(request_url);
+        var entity = capitalizeFirstLetter(request_url);
+        var url_path = entity;
+        console.log(url_path);
+        set_options.path = url_path
+        set_options.method = retrieveMethod(request);
+
+        console.log("<-B-: " + JSON.stringify(set_options));
+
+        var api_request = https.request(set_options, function(api_response) {
+            var resultString = "";
+                console.log(api_response.statusCode);
+            api_response.on('data', function (chunk) {
+                resultString+=chunk;
+            });
+            api_response.on('end', function (chunk) {
+                console.log("-B->: [" + api_response.statusCode + "] : [" + JSON.stringify(api_response.headers) + "]");
 
 
-app.all('/object/:entity', function(request, response) {
+                response.setHeader('Access-Control-Allow-Origin', '*');
+                response.status(200);
+                response.setHeader('content-type', 'application/json');
+                response.send(beautify(resultString));
+                response.end();
+            });
+            });
+        if (body) {
+            api_request.write(body);
+        }
+        api_request.end();
+
+        return;
+    });
+
+}
+
+
+app.all('/entity/:entity', function(request, response) {
     console.log("Current time is: " + new Date().toJSON());
     console.log ("-C-> "+request.method+" "+request.path);
     var new_path = buildNewPath(request.path);
@@ -502,7 +558,7 @@ app.all('/object/:entity', function(request, response) {
 
 });
 
-app.all('/object/:entity/:id', function(request, response) {
+app.all('/entity/:entity/:id', function(request, response) {
     console.log("Current time is: " + new Date().toJSON());
     console.log ("-C-> "+request.method+" "+request.path);
     var new_path = buildNewPath(request.path);
@@ -522,7 +578,7 @@ app.all('/object/:entity/:id', function(request, response) {
     });
 });
 
-app.all('/object/:entity/:id/:property', function(request, response) {
+app.all('/entity/:entity/:id/:property', function(request, response) {
     console.log("Current time is: " + new Date().toJSON());
     console.log ("-C-> "+request.method+" "+request.path);
     var new_path = buildNewPath(request.path);
@@ -740,11 +796,12 @@ app.get('/allusers', function(request, response) {
 });
 
 /* used for dev environments that are not https
+*/
 app.listen(app.get('port'), function() {
     console.log("Node app is running at localhost:" + app.get('port'));
 });
-*/
 
+/*
 var secureServer = https.createServer({
     key: fs.readFileSync(env_dir + 'cloud.key'),
     cert: fs.readFileSync(env_dir + 'cloud.crt'),
@@ -754,3 +811,4 @@ var secureServer = https.createServer({
 	console.log("Node app is running at localhost:" + app.get('port'));
     });
 
+*/
