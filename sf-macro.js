@@ -796,12 +796,12 @@ app.get('/allusers', function(request, response) {
 });
 
 /* used for dev environments that are not https
-*/
+
 app.listen(app.get('port'), function() {
     console.log("Node app is running at localhost:" + app.get('port'));
 });
+*/
 
-/*
 var secureServer = https.createServer({
     key: fs.readFileSync(env_dir + 'cloud.key'),
     cert: fs.readFileSync(env_dir + 'cloud.crt'),
@@ -811,4 +811,3 @@ var secureServer = https.createServer({
 	console.log("Node app is running at localhost:" + app.get('port'));
     });
 
-*/
