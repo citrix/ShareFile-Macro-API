@@ -1247,15 +1247,15 @@ paths:
           schema:
             $ref: '#/definitions/Error'   
             
-  /object/{ObjectName}:
+  /entity/{entityName}:
     get:
-      summary: Objects allow you to create a simple JSON database.  Simply post the json data to an entity name of your choosing and it will create a new table where you can get, create, update and delete json data 
-      description: Gets all objects with given entity name
+      summary: entitys allow you to create a simple JSON database.  Simply post the json data to an entity name of your choosing and it will create a new table where you can get, create, update and delete json data 
+      description: Gets all entitys with given entity name
       parameters:
-        - name: ObjectName
+        - name: entityName
           in: path
           type: string
-          description: Unique name for the Object
+          description: Unique name for the entity
           required: true
         - $ref: '#/parameters/Authorization'
         - $ref: '#/parameters/Cookie'
@@ -1264,21 +1264,21 @@ paths:
         - $ref: '#/parameters/username'
         - $ref: '#/parameters/password'
       tags:
-        - Objects
+        - entitys
       responses:
         200:
-          description: List of Objects that were inserted into the table
+          description: List of entitys that were inserted into the table
         default:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
     post:
-      summary: Create New Object
-      description: Adds Object to table or creates a new table if none exists
+      summary: Create New entity
+      description: Adds entity to table or creates a new table if none exists
       parameters:
-        - name: ObjectName
+        - name: entityName
           in: path
-          description: Unique name for the Object
+          description: Unique name for the entity
           required: true
           type: string
         - name: jsonData
@@ -1294,7 +1294,7 @@ paths:
         - $ref: '#/parameters/username'
         - $ref: '#/parameters/password'
       tags:
-        - Objects
+        - entitys
       responses:
         200:
           description: Id for the new entry is returned as well as entity count
@@ -1302,19 +1302,19 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /object/{ObjectName}/{ObjectIdentifier}/:
+  /entity/{entityName}/{entityIdentifier}/:
     get:
       summary: Get specific entity
       description: Get a specific entity by id
       parameters:
-        - name: ObjectName
+        - name: entityName
           in: path
-          description: Unique name for the Object
+          description: Unique name for the entity
           required: true
           type: string
-        - name: ObjectIdentifier
+        - name: entityIdentifier
           in: path
-          description: Unique Identifier for the Object
+          description: Unique Identifier for the entity
           required: true
           type: string
         - $ref: '#/parameters/Authorization'
@@ -1324,10 +1324,10 @@ paths:
         - $ref: '#/parameters/username'
         - $ref: '#/parameters/password'
       tags:
-        - Objects
+        - entitys
       responses:
         200:
-          description: Object JSON information
+          description: entity JSON information
         default:
           description: Unexpected error
           schema:
@@ -1336,14 +1336,14 @@ paths:
       summary: Modify a specific entity
       description: Pass in any additional parameters for the entity by id, new properties will be added and properties of the same name will be overwritten
       parameters:
-        - name: ObjectName
+        - name: entityName
           in: path
-          description: Unique name for the Object
+          description: Unique name for the entity
           required: true
           type: string
-        - name: ObjectIdentifier
+        - name: entityIdentifier
           in: path
-          description: Unqiue Identifier for the Object 
+          description: Unqiue Identifier for the entity 
           required: true
           type: string
         - name: jsonData
@@ -1359,7 +1359,7 @@ paths:
         - $ref: '#/parameters/username'
         - $ref: '#/parameters/password'
       tags:
-        - Objects
+        - entitys
       responses:
         200:
           description: Success
@@ -1368,17 +1368,17 @@ paths:
           schema:
             $ref: '#/definitions/Error'
     delete:
-      summary: Remove specific object from database
-      description: Removes the object data from the table
+      summary: Remove specific entity from database
+      description: Removes the entity data from the table
       parameters:
-        - name: ObjectName
+        - name: entityName
           in: path
-          description: Unique name for the Object
+          description: Unique name for the entity
           required: true
           type: string
-        - name: ObjectIdentifier
+        - name: entityIdentifier
           in: path
-          description: Unique Identifier for the Object
+          description: Unique Identifier for the entity
           required: true
           type: string
         - $ref: '#/parameters/Authorization'
@@ -1388,7 +1388,7 @@ paths:
         - $ref: '#/parameters/username'
         - $ref: '#/parameters/password'
       tags:
-        - Objects
+        - entitys
       responses:
         200:
           description: Success
@@ -1396,24 +1396,24 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /object/{ObjectName}/{ObjectIdentifier}/{PropertyName}:
+  /entity/{entityName}/{entityIdentifier}/{PropertyName}:
     get:
-      summary: Get specific property on an object
-      description: Get a specific property for an object by id
+      summary: Get specific property on an entity
+      description: Get a specific property for an entity by id
       parameters:
-        - name: ObjectName
+        - name: entityName
           in: path
-          description: Unique name for the Object
+          description: Unique name for the entity
           required: true
           type: string
-        - name: ObjectIdentifier
+        - name: entityIdentifier
           in: path
-          description: Unique Identifier for the Object
+          description: Unique Identifier for the entity
           required: true
           type: string
         - name: PropertyName
           in: path
-          description: Unique name for the Object Property
+          description: Unique name for the entity Property
           required: true
           type: string
         - $ref: '#/parameters/Authorization'
@@ -1423,31 +1423,31 @@ paths:
         - $ref: '#/parameters/username'
         - $ref: '#/parameters/password'
       tags:
-        - Objects
+        - entitys
       responses:
         200:
-          description: Object JSON information
+          description: entity JSON information
         default:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
     patch:
-      summary: Modify a specific object property
-      description: Creates or updates JSON data on the property.  Property stores a full JSON object instead of a simple string.  If you only want to modify the property as a string use the PATCH /object/{ObjectName}/{ObjectIdentifier} endpoint
+      summary: Modify a specific entity property
+      description: Creates or updates JSON data on the property.  Property stores a full JSON entity instead of a simple string.  If you only want to modify the property as a string use the PATCH /entity/{entityName}/{entityIdentifier} endpoint
       parameters:
-        - name: ObjectName
+        - name: entityName
           in: path
-          description: Unique name for the Object
+          description: Unique name for the entity
           required: true
           type: string
-        - name: ObjectIdentifier
+        - name: entityIdentifier
           in: path
-          description: Unqiue Identifier for the Object 
+          description: Unqiue Identifier for the entity 
           required: true
           type: string
         - name: PropertyName
           in: path
-          description: Unique name for the Object Property
+          description: Unique name for the entity Property
           required: true
           type: string
         - name: jsonData
@@ -1463,7 +1463,7 @@ paths:
         - $ref: '#/parameters/username'
         - $ref: '#/parameters/password'
       tags:
-        - Objects
+        - entitys
       responses:
         200:
           description: Success
@@ -1472,22 +1472,22 @@ paths:
           schema:
             $ref: '#/definitions/Error'
     delete:
-      summary: Remove specific property from the object
-      description: Removes the object property
+      summary: Remove specific property from the entity
+      description: Removes the entity property
       parameters:
-        - name: ObjectName
+        - name: entityName
           in: path
-          description: Unique name for the Object
+          description: Unique name for the entity
           required: true
           type: string
-        - name: ObjectIdentifier
+        - name: entityIdentifier
           in: path
-          description: Unique Identifier for the Object
+          description: Unique Identifier for the entity
           required: true
           type: string
         - name: PropertyName
           in: path
-          description: Unique name for the Object Property
+          description: Unique name for the entity Property
           required: true
           type: string
         - $ref: '#/parameters/Authorization'
@@ -1497,7 +1497,7 @@ paths:
         - $ref: '#/parameters/username'
         - $ref: '#/parameters/password'
       tags:
-        - Objects
+        - entitys
       responses:
         200:
           description: Success
@@ -1505,6 +1505,2086 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /space/:
+    post:
+      summary: Create Space
+      description: Add a new space to an organization
+      operationId: addSpace
+      parameters:
+        - name: Space
+          in: body
+          description: Space Information
+          required: true
+          schema:
+            $ref: '#/definitions/Space'
+      tags:
+        - Spaces
+      responses:
+        200:
+          description: Space Information
+          schema:
+            $ref: '#/definitions/Space'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /space/{SpaceIdentifier}:
+    get:
+      summary: Get Space Information
+      description: Get the space with the given id
+      parameters:
+        - name: SpaceIdentifier
+          in: path
+          description: this is the unique id of the space
+          required: true
+          type: string
+      tags:
+        - Spaces
+      responses:
+        200:
+          description: Space Information
+          schema:
+            $ref: '#/definitions/Space'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      summary: Update Space
+      description: Updates the space with the given id
+      parameters:
+        - name: SpaceIdentifier
+          in: path
+          description: unique identifier of the space
+          required: true
+          type: string
+        - name: Space
+          in: body
+          description: Space Information
+          required: true
+          schema:
+            $ref: '#/definitions/Space'
+      tags:
+        - Shares
+      responses:
+        200:
+          description: Space Information
+          schema:
+            $ref: '#/definitions/Space'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Delete Space 
+      description: Deletes the space with the given id. This will also end all memberships of the space and cancel any space invites still outstanding.
+      parameters:
+        - name: SpaceIdentifier
+          in: path
+          description: unique identifier for the space
+          required: true
+          type: string
+      tags:
+        - Shares
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /space/{SpaceIdentifier}/restore/:
+    post:
+      summary: Restore an archived workspace
+      description: Restores an archived workspace. This unhides it from navigation, but doesn't do anything other than that.
+      parameters:
+        - name: SpaceIdentifier
+          in: path
+          description: this is the unique id of the space
+          required: true
+          type: string
+      tags:
+        - Spaces
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /space/{SpaceIdentifier}/archive/:
+    get:
+      summary: Archives the workspace.
+      description: Archives the workspace. This hides it from navigation, but doesn't do anything other than that.
+      parameters:
+        - name: SpaceIdentifier
+          in: path
+          description: this is the unique id of the space
+          required: true
+          type: string
+      tags:
+        - Spaces
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /space/{SpaceIdentifier}/available/:
+    get:
+      summary: Returns the available seats
+      description: Returns the available seats. A null value means there is an unlimited number of available seats.
+      parameters:
+        - name: SpaceIdentifier
+          in: path
+          description: this is the unique id of the space
+          required: true
+          type: string
+      tags:
+        - Spaces
+      responses:
+        200:
+          description: Space Information
+          schema:
+            $ref: '#/definitions/Space'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /space/org/{OrgIdentifier}/:
+    get:
+      summary: Returns the workspaces in the organization.
+      description: Returns the workspaces in the organization that are accesible for the active user.
+      parameters:
+        - name: OrgIdentifier
+          in: path
+          description: this is the unique id of the organization
+          required: true
+          type: string
+      tags:
+        - Spaces
+      responses:
+        200:
+          description: Space Information
+          schema:
+            $ref: '#/definitions/Space'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+            
+  /space/org/{OrgIdentifier}/available/:
+    get:
+      summary: Returns the available spaces
+      description: Returns the available seats. A null value means there is an unlimited number of available seats.
+      parameters:
+        - name: OrgIdentifier
+          in: path
+          description: this is the unique id of the organization
+          required: true
+          type: string
+      tags:
+        - Spaces
+      responses:
+        200:
+          description: Space Information
+          schema:
+            $ref: '#/definitions/Space'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /app/:
+    get:
+      summary: Get all app Information
+      description: Get the app with the given id
+      parameters:
+        - name: exclude_app_ids
+          in: query
+          description: The comma separated list of app_ids to exclude from the returned list.
+          required: false
+          type: string
+        - name: exclude_demo
+          in: query
+          description: If apps from demo workspace should be excluded,
+          required: false
+          type: string
+        - name: limit
+          in: query
+          description: The maximum number of apps to return Default 4
+          required: false
+          type: string
+        - name: order
+          in: query
+          description: The order to return the apps in - "score" Order by the  score of the app for the active user "name" Order by the name of the app
+          required: false
+          type: string
+        - name: referenceable_in_org
+          in: query
+          description: ID of the Organization to filter apps by. Returns only apps the user can reference in that Organization.
+          required: false
+          type: string
+        - name: right
+          in: query
+          description: The right the user must have on the returned apps.
+          required: false
+          type: string
+        - name: target_space_id
+          in: query
+          description: The id of the space we prefer the apps to come from. This will usually be the users current workspace.
+          required: false
+          type: string
+        - name: text
+          in: query
+          description: Any search term that should either match the name of the app, the name of items in the app or the name of the workspace the app is in.
+          required: false
+          type: string
+      tags:
+        - app
+      responses:
+        200:
+          description: app Information
+          schema:
+            $ref: '#/definitions/application'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      summary: Create app
+      description: Add a new app to an organization
+      operationId: addapp
+      parameters:
+        - name: app
+          in: body
+          description: app Information
+          required: true
+          schema:
+            $ref: '#/definitions/application'
+      tags:
+        - app
+      responses:
+        200:
+          description: app Information
+          schema:
+            $ref: '#/definitions/application'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /app/{appIdentifier}:
+    get:
+      summary: Get app Information
+      description: Gets the definition of an app and can include configuration and fields. This method will always return the latest revision of the app definition.
+      parameters:
+        - name: appIdentifier
+          in: path
+          description: this is the unique id of the app
+          required: true
+          type: string
+      tags:
+        - app
+      responses:
+        200:
+          description: app Information
+          schema:
+            $ref: '#/definitions/application'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      summary: Update app
+      description: Updates an app. The update can contain an new configuration for the app, addition of new fields as well as updates to the configuration of existing fields. Fields not included will not be deleted. To delete a field use the "delete field" operation. When adding/updating/deleting apps and fields, it can be simpler to only update the app config here and add/update/remove fields using the field/{field_id} sub resource.
+      parameters:
+        - name: appIdentifier
+          in: path
+          description: unique identifier of the app
+          required: true
+          type: string
+        - name: app
+          in: body
+          description: app Information
+          required: true
+          schema:
+            $ref: '#/definitions/application'
+      tags:
+        - app
+      responses:
+        200:
+          description: app Information
+          schema:
+            $ref: '#/definitions/application'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Delete app 
+      description: Deletes the app with the given id. This will delete all items, widgets, filters and shares on the app. This operation is not reversible.
+      parameters:
+        - name: appIdentifier
+          in: path
+          description: unique identifier for the app
+          required: true
+          type: string
+      tags:
+        - app
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /app/{appIdentifier}/activate/:
+    post:
+      summary: Activates a deactivated app. 
+      description: Activates a deactivated app. This puts the app back in the app navigator and allows insertion of new items.
+      parameters:
+        - name: appIdentifier
+          in: path
+          description: this is the unique id of the app
+          required: true
+          type: string
+      tags:
+        - app
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /app/{appIdentifier}/deactivate/:
+    post:
+      summary: Deactivates an app. 
+      description: Deactivates the app with the given id. This removes the app from the app navigator, and disables insertion of new items.
+      parameters:
+        - name: appIdentifier
+          in: path
+          description: this is the unique id of the app
+          required: true
+          type: string
+      tags:
+        - app
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /app/{appIdentifier}/install/:
+    post:
+      summary: Installs the app with the given id on the space.
+      description: Installs the app with the given id on the space.
+      parameters:
+        - name: appIdentifier
+          in: path
+          description: this is the unique id of the app
+          required: true
+          type: string
+        - name: spaceIdentifier
+          in: query
+          description: this is the unique id of the space where the app should be installed
+          required: true
+          type: string
+      tags:
+        - app
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /app/{appIdentifier}/field/:
+    post:
+      summary: Adds a new field to an app
+      description: Adds a new field to an app
+      parameters:
+        - name: appIdentifier
+          in: path
+          description: this is the unique id of the app
+          required: true
+          type: string
+        - name: field
+          in: body
+          description: app Information
+          required: true
+          schema:
+            $ref: '#/definitions/Fields'
+      tags:
+        - app
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /app/{appIdentifier}/field/{fieldIdentifier}:
+    get:
+      summary: Returns a single field from an app. 
+      description: Returns a single field from an app. 
+      parameters:
+        - name: appIdentifier
+          in: path
+          description: this is the unique id of the app
+          required: true
+          type: string
+        - name: fieldIdentifier
+          in: path
+          description: this is the unique id of the field
+          required: true
+          type: string
+      tags:
+        - app
+      responses:
+        200:
+          description: app Information
+          schema:
+            $ref: '#/definitions/application'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      summary: Update an app field
+      description: Updates the configuration of an app field. The type of the field cannot be updated, only the configuration.
+      parameters:
+        - name: appIdentifier
+          in: path
+          description: this is the unique id of the app
+          required: true
+          type: string
+        - name: fieldIdentifier
+          in: path
+          description: this is the unique id of the field
+          required: true
+          type: string
+        - name: field
+          in: body
+          description: field Information
+          required: true
+          schema:
+            $ref: '#/definitions/Fields'
+      tags:
+        - app
+      responses:
+        200:
+          description: app Information
+          schema:
+            $ref: '#/definitions/application'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Deletes a field on an app.
+      description: Deletes a field on an app. When deleting a field any new items and updates to existing items will not have this field present. For existing items, the field will still be presented when viewing the item.
+      parameters:
+        - name: appIdentifier
+          in: path
+          description: this is the unique id of the app
+          required: true
+          type: string
+        - name: fieldIdentifier
+          in: path
+          description: this is the unique id of the field
+          required: true
+          type: string
+      tags:
+        - app
+      responses:
+        200:
+          description: app Information
+          schema:
+            $ref: '#/definitions/application'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /app/{appIdentifier}/dependencies/:
+    get:
+      summary: Returns the apps that the given app depends on.
+      description: Returns the apps that the given app depends on.
+      parameters:
+        - name: appIdentifier
+          in: path
+          description: this is the unique id of the app
+          required: true
+          type: string
+      tags:
+        - app
+      responses:
+        200:
+          description: app Information
+          schema:
+            $ref: '#/definitions/application'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+            
+  /app/space/{spaceIdentifier}/:
+    get:
+      summary: Returns all the apps on the space that are visible.
+      description: Returns all the apps on the space that are visible. The apps are sorted by any custom ordering and else by name.
+      parameters:
+        - name: spaceIdentifier
+          in: path
+          description: this is the unique id of the space
+          required: true
+          type: string
+      tags:
+        - app
+      responses:
+        200:
+          description: app Information
+          schema:
+            $ref: '#/definitions/application'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+            
+  /app/features/:
+    get:
+      summary: Returns the features that the given apps and optionally space includes. 
+      description: Returns the features that the given apps and optionally space includes. 
+      parameters:
+        - name: appIdentifiers
+          in: query
+          description: A comma-separated list of app ids from which the features should be extracted
+          required: true
+          type: string
+        - name: includeSpace
+          in: query
+          description: If features from the containing space should be included
+          required: false
+          type: string
+      tags:
+        - app
+      responses:
+        200:
+          description: app Information
+          schema:
+            $ref: '#/definitions/application'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /app/top/:
+    get:
+      summary: Returns the top apps for the active user. This is the apps that the user have interacted with the most.
+      description: Returns the top apps for the active user. This is the apps that the user have interacted with the most.
+      parameters:
+        - name: excludeDemo
+          in: query
+          description: If apps from demo workspace should be excluded
+          required: false
+          type: boolean
+        - name: limit
+          in: query
+          description: The maximum number of apps to return Default  4
+          required: false
+          type: boolean
+      tags:
+        - app
+      responses:
+        200:
+          description: app Information
+          schema:
+            $ref: '#/definitions/application'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'    
+  /space/{spaceIdentifier}/dependencies/:
+    get:
+      summary: Returns all the active apps on the space along with their dependencies.
+      description: Returns all the active apps on the space along with their dependencies. The dependencies are only one level deep.
+      parameters:
+        - name: spaceIdentifier
+          in: path
+          description: this is the unique id of the space
+          required: true
+          type: string
+      tags:
+        - app
+      responses:
+        200:
+          description: app Information
+          schema:
+            $ref: '#/definitions/application'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+            
+  /app/org/{orgIdentifier}/top/:
+    get:
+      summary: Returns the top apps for the user inside the given organization
+      description: Returns the top apps for the user inside the given organization
+      parameters:
+        - name: orgIdentifier
+          in: path
+          description: this is the unique id of the organization
+          required: true
+          type: string
+      tags:
+        - app
+      responses:
+        200:
+          description: app Information
+          schema:
+            $ref: '#/definitions/application'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /comment/:
+    post:
+      summary: Create comment
+      description: Add a new comment to an organization
+      operationId: addcomment
+      parameters:
+        - name: comment
+          in: body
+          description: comment Information
+          required: true
+          schema:
+            $ref: '#/definitions/comment'
+      tags:
+        - comment
+      responses:
+        200:
+          description: comment Information
+          schema:
+            $ref: '#/definitions/comment'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /comment/{commentIdentifier}:
+    get:
+      summary: Get comment Information
+      description: Get the comment with the given id. It is not possible to see where the comment was made, only the comment itself.
+      parameters:
+        - name: commentIdentifier
+          in: path
+          description: this is the unique id of the comment
+          required: true
+          type: string
+      tags:
+        - comment
+      responses:
+        200:
+          description: comment Information
+          schema:
+            $ref: '#/definitions/comment'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      summary: Update comment
+      description: Updates the comment with the given id This should only be used to correct spelling and grammatical mistakes in the comment.
+      parameters:
+        - name: commentIdentifier
+          in: path
+          description: unique identifier of the comment
+          required: true
+          type: string
+        - name: comment
+          in: body
+          description: comment Information
+          required: true
+          schema:
+            $ref: '#/definitions/comment'
+      tags:
+        - comment
+      responses:
+        200:
+          description: comment Information
+          schema:
+            $ref: '#/definitions/comment'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Delete comment 
+      description: Deletes the comment with the given id. This can be used to retract a comment that was made and which the user regrets.
+      parameters:
+        - name: commentIdentifier
+          in: path
+          description: unique identifier for the comment
+          required: true
+          type: string
+      tags:
+        - comment
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /comment/{commentIdentifier}/revision/:
+    post:
+      summary: Returns all revisions on a comment
+      description: Returns all the revisions on the given comment, including the current revision. Revisions are returned with the oldest first.
+      parameters:
+        - name: commentIdentifier
+          in: path
+          description: this is the unique id of the comment
+          required: true
+          type: string
+      tags:
+        - comment
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /comment/{objectType}/{objectIdentifier}/:
+    get:
+      summary: Retrieves the comments that have been made on an object
+      description: Used to retrieve the comments that have been made on an object of the given type and with the given id. It returns a list of the comments sorted in ascending order by time created.
+      parameters:
+        - name: objectIdentifier
+          in: path
+          description: this is the unique id of the object
+          required: true
+          type: string
+        - name: objectType
+          in: path
+          description: this is the type of object the comment is on
+          required: true
+          type: string
+      tags:
+        - comments
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      summary: Add comment to object
+      description: Adds a new comment to the object of the given type and id, f.ex. item 1.
+      parameters:
+        - name: objectIdentifier
+          in: path
+          description: this is the unique id of the object
+          required: true
+          type: string
+        - name: objectType
+          in: path
+          description: this is the type of object the comment is on
+          required: true
+          type: string
+      tags:
+        - comment
+      responses:
+        200:
+          description: comment Information
+          schema:
+            $ref: '#/definitions/comment'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /hook/{refType}/{refIdentifier}:
+    get:
+      summary: Get hook Information
+      description: Get the hook information on given reference 
+      parameters:
+        - name: refType
+          in: path
+          description: reference type hook is attached to
+          required: true
+          type: string
+        - name: refIdentifier
+          in: path
+          description: reference id 
+          required: true
+          type: string
+      tags:
+        - hook
+      responses:
+        200:
+          description: hook Information
+          schema:
+            $ref: '#/definitions/hook'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      summary: Create hook
+      description: Create a new hook on the given object.
+      operationId: addhook
+      parameters:
+        - name: refType
+          in: path
+          description: reference type hook is attached to
+          required: true
+          type: string
+        - name: refIdentifier
+          in: path
+          description: reference id 
+          required: true
+          type: string
+        - name: url
+          in: query
+          description: callback url for webhook
+          required: true
+          type: string
+        - name: type
+          in: query
+          description: type of events to listen to
+          required: true
+          type: string
+      tags:
+        - hook
+      responses:
+        200:
+          description: hook Information
+          schema:
+            $ref: '#/definitions/hook'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /hook/{hookIdentifier}:
+    delete:
+      summary: Delete hook 
+      description: Deletes the hook with the given id. 
+      parameters:
+        - name: hookIdentifier
+          in: path
+          description: unique identifier for the hook
+          required: true
+          type: string
+      tags:
+        - hook
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /hook/{hookIdentifier}/verify/request:
+    post:
+      summary: Request the hook to be validated.
+      description: Request the hook to be validated. This will cause the hook to send a request to the URL with the parameter "type" set to "hook.verify" and "code" set to the verification code. The endpoint must then call the validate method with the code to complete the verification.
+      parameters:
+        - name: hookIdentifier
+          in: path
+          description: this is the unique id of the hook
+          required: true
+          type: string
+      tags:
+        - hook
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /hook/{hookIdentifier}/verify/validate:
+    post:
+      summary: Validate the webhook
+      description: Validates the hook using the code received from the verify call. On successful validation the hook will become active.
+      parameters:
+        - name: hookIdentifier
+          in: path
+          description: this is the unique id of the hook
+          required: true
+          type: string
+      tags:
+        - hook
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /object/app/{appIdentifier}/:
+    post:
+      summary: Create object
+      description: Add a new object to an organization
+      operationId: addobject
+      parameters:
+        - name: appIdentifier
+          in: path
+          description: unique id for the application
+          required: true
+          type: string
+        - name: object
+          in: body
+          description: object Information
+          required: true
+          schema:
+            $ref: '#/definitions/object'
+      tags:
+        - object
+      responses:
+        200:
+          description: object Information
+          schema:
+            $ref: '#/definitions/object'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /object/{objectIdentifier}:
+    get:
+      summary: Get object Information
+      description: Get the object with the given id
+      parameters:
+        - name: objectIdentifier
+          in: path
+          description: this is the unique id of the object
+          required: true
+          type: string
+      tags:
+        - object
+      responses:
+        200:
+          description: object Information
+          schema:
+            $ref: '#/definitions/object'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      summary: Update object
+      description: Update an already existing object. Values will only be updated for fields included. To delete all values for a field supply an empty array as values for that field.
+      parameters:
+        - name: objectIdentifier
+          in: path
+          description: unique identifier of the object
+          required: true
+          type: string
+        - name: object
+          in: body
+          description: object Information
+          required: true
+          schema:
+            $ref: '#/definitions/object'
+      tags:
+        - object
+      responses:
+        200:
+          description: object Information
+          schema:
+            $ref: '#/definitions/object'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Delete object 
+      description: Deletes an object and removes it from all views. The object can no longer be retrieved.
+      parameters:
+        - name: objectIdentifier
+          in: path
+          description: unique identifier for the object
+          required: true
+          type: string
+      tags:
+        - object
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /object/app/{appIdentifier}/delete/:
+    post:
+      summary: Bulk delete
+      description: Deletes items from a given app based in bulk and removes them from all views. The data can no longer be retrieved.
+      parameters:
+        - name: appIdentifier
+          in: path
+          description: this is the unique id of the application
+          required: true
+          type: string
+      tags:
+        - object
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /object/{objectIdentifier}/clone/:
+    get:
+      summary: Archives the workobject.
+      description: Archives the workobject. This hides it from navigation, but doesn't do anything other than that.
+      parameters:
+        - name: objectIdentifier
+          in: path
+          description: this is the unique id of the object
+          required: true
+          type: string
+      tags:
+        - object
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /object/{objectIdentifier}/available/:
+    get:
+      summary: Returns the available seats
+      description: Returns the available seats. A null value means there is an unlimited number of available seats.
+      parameters:
+        - name: objectIdentifier
+          in: path
+          description: this is the unique id of the object
+          required: true
+          type: string
+      tags:
+        - object
+      responses:
+        200:
+          description: object Information
+          schema:
+            $ref: '#/definitions/object'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /object/org/{OrgIdentifier}/:
+    get:
+      summary: Returns the workobjects in the organization.
+      description: Returns the workobjects in the organization that are accesible for the active user.
+      parameters:
+        - name: OrgIdentifier
+          in: path
+          description: this is the unique id of the organization
+          required: true
+          type: string
+      tags:
+        - object
+      responses:
+        200:
+          description: object Information
+          schema:
+            $ref: '#/definitions/object'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+            
+  /object/org/{OrgIdentifier}/available/:
+    get:
+      summary: Returns the available objects
+      description: Returns the available seats. A null value means there is an unlimited number of available seats.
+      parameters:
+        - name: OrgIdentifier
+          in: path
+          description: this is the unique id of the organization
+          required: true
+          type: string
+      tags:
+        - object
+      responses:
+        200:
+          description: object Information
+          schema:
+            $ref: '#/definitions/object'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /search/:
+    post:
+      summary: Searches in all items, statuses, profiles, files, meetings and non-private tasks.
+      description: Searches in all items, statuses, profiles, files, meetings and non-private tasks. The objects will be returned sorted descending by the time the object was created.
+      operationId: addsearch
+      parameters:
+        - name: search_fields
+          in: query
+          description: The list of fields to search in. Can f.ex. be used to limit the search to the "title" field.
+          required: true
+          type: string
+      tags:
+        - search
+      responses:
+        200:
+          description: search Information
+          schema:
+            $ref: '#/definitions/search'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /search/v2/:
+    get:
+      summary: Searches in all conversations, profiles, statuses, items, files, and tasks. 
+      description: Searches in all conversations, profiles, statuses, items, files, and tasks. The objects will be returned sorted descending by the time the object had any update.
+      parameters:
+        - name: counts
+          in: query
+          description: If the counts for each type of object should be returned.
+          required: false
+          type: string
+        - name: highlights
+          in: query
+          description: If the highlights for each result should be returned
+          required: false
+          type: string
+        - name: limit
+          in: query
+          description: The maximum number of results to return.  Default value 20
+          required: false
+          type: string
+        - name: offset
+          in: query
+          description: The offset into the results to return. Default value 0
+          required: false
+          type: string
+        - name: query
+          in: query
+          description: The text to search for.
+          required: false
+          type: string
+        - name: ref_type
+          in: query
+          description: Restrict the search to objects of the given type. Can be "item", "task", "file", "conversation", "profile" and "app"
+          required: true
+          type: string
+        - name: search_fields
+          in: query
+          description: The list of fields to search in. Can f.ex. be used to limit the search to the "title" field.
+          required: true
+          type: string
+      tags:
+        - search
+      responses:
+        200:
+          description: search Information
+          schema:
+            $ref: '#/definitions/search'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /search/app/{appIdentifier}/:
+    post:
+      summary: Search in app
+      description: Searches in all items and tasks in the app.
+      parameters:
+        - name: appIdentifier
+          in: path
+          description: this is the unique id of the app
+          required: true
+          type: string
+        - name: search_fields
+          in: query
+          description: The list of fields to search in. Can be used to limit the search to the "title" field.
+          required: true
+          type: string
+      tags:
+        - search
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /search/app/{appIdentifier}/v2/:
+    get:
+      summary: Search in app v2
+      description: Searches in all items, files, and tasks in the application. The objects will be returned sorted descending by the time the object had any update.
+      parameters:
+        - name: appIdentifier
+          in: path
+          description: this is the unique id of the app
+          required: true
+          type: string
+        - name: counts
+          in: query
+          description: If the counts for each type of object should be returned.
+          required: false
+          type: string
+        - name: highlights
+          in: query
+          description: If the highlights for each result should be returned
+          required: false
+          type: string
+        - name: limit
+          in: query
+          description: The maximum number of results to return.  Default 20
+          required: false
+          type: string
+        - name: offset
+          in: query
+          description: The offset into the results to return. Default  0
+          required: false
+          type: string
+        - name: query
+          in: query
+          description: The text to search for.
+          required: true
+          type: string
+        - name: ref_type
+          in: query
+          description: Restrict the search to objects of the given type. Can be "item", "task", "file", "conversation", "profile" and "app"
+          required: true
+          type: string
+        - name: search_fields
+          in: query
+          description: The list of fields to search in. Can f.ex. be used to limit the search to the "title" field.
+          required: true
+          type: string
+      tags:
+        - search
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /search/app/{appIdentifier}/space/{spaceIdentifier}:
+    get:
+      summary: Searches an app in a space
+      description: Searches in all objects and tasks in the app and space.
+      parameters:
+        - name: appIdentifier
+          in: path
+          description: this is the unique id of the app
+          required: true
+          type: string
+        - name: spaceIdentifier
+          in: path
+          description: this is the unique id of the space
+          required: true
+          type: string
+        - name: counts
+          in: query
+          description: If the counts for each type of object should be returned. 
+          required: false
+          type: string
+        - name: highlights
+          in: query
+          description: If the highlights for each result should be returned
+          required: false
+          type: string
+        - name: limit
+          in: query
+          description: The maximum number of results to return.  Default  20
+          required: false
+          type: string
+        - name: offset
+          in: query
+          description: The offset into the results to return. Default  0
+          required: false
+          type: string
+        - name: query
+          in: query
+          description: The text to search for.
+          required: true
+          type: string
+        - name: ref_type
+          in: query
+          description: Restrict the search to objects of the given type. Can be "item", "task", "file", "conversation", "profile" and "app"
+          required: true
+          type: string
+        - name: search_fields
+          in: query
+          description: The list of fields to search in. Can f.ex. be used to limit the search to the "title" field.
+          required: true
+          type: string
+      tags:
+        - search
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /search/org/{orgIdentifier}/:
+    post:
+      summary: Searches in organization.
+      description: Searches in all items, statuses and non-private tasks in the organization.
+      parameters:
+        - name: orgIdentifier
+          in: path
+          description: this is the unique id of the organization
+          required: true
+          type: string
+        - name: search_fields
+          in: query
+          description: The list of fields to search in. Can be used to limit the search to the "title" field.
+          required: true
+          type: string
+      tags:
+        - search
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /search/org/{orgIdentifier}/v2/:
+    get:
+      summary: Search in organization v2
+      description: Searches in all items, statuses, files, profiles, apps and non-private tasks in the organization. The objects will be returned sorted descending by the time the object had any update.
+      parameters:
+        - name: orgIdentifier
+          in: path
+          description: this is the unique id of the organization
+          required: true
+          type: string
+        - name: counts
+          in: query
+          description: True if the counts for each type of object should be returned.
+          required: false
+          type: string
+        - name: highlights
+          in: query
+          description: True if the highlights for each result should be returned
+          required: false
+          type: string
+        - name: limit
+          in: query
+          description: The maximum number of results to return.  Default  20
+          required: false
+          type: string
+        - name: offset
+          in: query
+          description: The offset into the results to return. Default  0
+          required: false
+          type: string
+        - name: query
+          in: query
+          description: The text to search for.
+          required: true
+          type: string
+        - name: ref_type
+          in: query
+          description: Restrict the search to objects of the given type. Can be "item", "task", "file", "conversation", "profile" and "app"
+          required: true
+          type: string
+        - name: search_fields
+          in: query
+          description: The list of fields to search in. Can f.ex. be used to limit the search to the "title" field.
+          required: true
+          type: string
+      tags:
+        - search
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /search/space/{spaceIdentifier}/:
+    post:
+      summary: Search in space
+      description: Searches in all items, statuses and non-private tasks in the space. The objects will be returned sorted descending by the time the object had any update.
+      parameters:
+        - name: spaceIdentifier
+          in: path
+          description: this is the unique id of the space
+          required: true
+          type: string
+        - name: search_fields
+          in: query
+          description: The list of fields to search in. Can f.ex. be used to limit the search to the "title" field.
+          required: true
+          type: string
+      tags:
+        - search
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /search/space/{spaceIdentifier}/v2/:
+    get:
+      summary: Search in space v2
+      description: Searches in all items, statuses and non-private tasks in the space. The objects will be returned sorted descending by the time the object had any update.
+      parameters:
+        - name: spaceIdentifier
+          in: path
+          description: this is the unique id of the space
+          required: true
+          type: string
+        - name: counts
+          in: query
+          description: If the counts for each type of object should be returned. 
+          required: false
+          type: string
+        - name: highlights
+          in: query
+          description: If the highlights for each result should be returned
+          required: false
+          type: string
+        - name: limit
+          in: query
+          description: The maximum number of results to return.  Default  20
+          required: true
+          type: string
+        - name: offset
+          in: query
+          description: The offset into the results to return. Default  0
+          required: true
+          type: string
+        - name: query
+          in: query
+          description: The text to search for.
+          required: true
+          type: string
+        - name: ref_type
+          in: query
+          description: Restrict the search to objects of the given type. Can be "item", "task", "file", "conversation", "profile" and "app"
+          required: true
+          type: string
+        - name: search_fields
+          in: query
+          description: The list of fields to search in. Can f.ex. be used to limit the search to the "title" field.
+          required: true
+          type: string
+      tags:
+        - search
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /tag/{refType}/{refIdentifier}:
+    post:
+      summary: Create tag
+      description: Adds additional tags to the object. If a tag with the same text is already present, the tag will be ignored. Existing tags on the object are preserved.
+      operationId: addtag
+      parameters:
+        - name: refType
+          in: path
+          description: reference type hook is attached to
+          required: true
+          type: string
+        - name: refIdentifier
+          in: path
+          description: reference id 
+          required: true
+          type: string
+        - name: text
+          in: query
+          description: text of tag to be added
+          required: true
+          type: string
+      tags:
+        - tag
+      responses:
+        200:
+          description: tag Information
+          schema:
+            $ref: '#/definitions/tag'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      summary: Update tag
+      description: Updates the tag with the given id
+      parameters:
+        - name: refType
+          in: path
+          description: reference type hook is attached to
+          required: true
+          type: string
+        - name: refIdentifier
+          in: path
+          description: reference id 
+          required: true
+          type: string
+        - name: text
+          in: query
+          description: text of tag to be updated
+          required: true
+          type: string
+      tags:
+        - tag
+      responses:
+        200:
+          description: tag Information
+          schema:
+            $ref: '#/definitions/tag'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Delete tag 
+      description: Deletes the tag with the given id. This will also end all memberships of the tag and cancel any tag invites still outstanding.
+      parameters:
+        - name: refType
+          in: path
+          description: reference type hook is attached to
+          required: true
+          type: string
+        - name: refIdentifier
+          in: path
+          description: reference id 
+          required: true
+          type: string
+        - name: text
+          in: query
+          description: text of tag to be removed
+          required: true
+          type: string
+      tags:
+        - tag
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /tag/space/{spaceIdentifier}/:
+    get:
+      summary: Returns the tags on the given space.
+      description: Returns the tags on the given space. This includes both items and statuses. The tags are first limited ordered by their frequency of use, and then returned sorted alphabetically.
+      parameters:
+        - name: spaceIdentifier
+          in: path
+          description: this is the unique id of the space the tags are in
+          required: true
+          type: string
+        - name: limit
+          in: query
+          description: number of results
+          required: false
+          type: string
+        - name: text
+          in: query
+          description: text of tag to find
+          required: false
+          type: string
+      tags:
+        - tag
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /tag/space/{spaceIdentifier}/search/:
+    get:
+      summary: Get objects on space with tag
+      description: Returns the objects that are tagged with the given text on the space. The objects are returned sorted descending by the time the tag was added.
+      parameters:
+        - name: spaceIdentifier
+          in: path
+          description: this is the unique id of the space the tags are in
+          required: true
+          type: string
+        - name: text
+          in: query
+          description: text of tag to find
+          required: false
+          type: string
+      tags:
+        - tag
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /tag/org/{orgIdentifier}/:
+    get:
+      summary: Returns the tags on the given organization.
+      description: Returns the tags on the given org. This includes both items and statuses on all spaces in the organization that the user is part of. The tags are first limited ordered by their frequency of use, and then returned sorted alphabetically.
+      parameters:
+        - name: orgIdentifier
+          in: path
+          description: this is the unique id of the organization the tags are in
+          required: true
+          type: string
+        - name: limit
+          in: query
+          description: number of results
+          required: false
+          type: string
+        - name: text
+          in: query
+          description: text of tag to find
+          required: false
+          type: string
+      tags:
+        - tag
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /tag/org/{orgIdentifier}/search/:
+    get:
+      summary: Get objects on organization with tag
+      description: Returns the objects that are tagged with the given text on the organization. The objects are returned sorted descending by the time the tag was added.
+      parameters:
+        - name: orgIdentifier
+          in: path
+          description: this is the unique id of the organization the tags are in
+          required: true
+          type: string
+        - name: text
+          in: query
+          description: text of tag to find
+          required: false
+          type: string
+      tags:
+        - tag
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /tag/app/{appIdentifier}/:
+    get:
+      summary: Returns the tags on the given application.
+      description: Returns the tags on the given app. This includes only items. The tags are first limited ordered by their frequency of use, and then returned sorted alphabetically.
+      parameters:
+        - name: appIdentifier
+          in: path
+          description: this is the unique id of the app the tags are in
+          required: true
+          type: string
+        - name: limit
+          in: query
+          description: number of results
+          required: false
+          type: string
+        - name: text
+          in: query
+          description: text of tag to find
+          required: false
+          type: string
+      tags:
+        - tag
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /tag/app/{appIdentifier}/search/:
+    get:
+      summary: Get objects on app with tag
+      description: Returns the objects that are tagged with the given text on the app. The objects are returned sorted descending by the time the tag was added.
+      parameters:
+        - name: appIdentifier
+          in: path
+          description: this is the unique id of the app the tags are in
+          required: true
+          type: string
+        - name: text
+          in: query
+          description: text of tag to find
+          required: false
+          type: string
+      tags:
+        - tag
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /tag/app/{appIdentifier}/top/:
+    get:
+      summary: Returns the top tags on the app.
+      description: Returns the top tags on the app.
+      parameters:
+        - name: appIdentifier
+          in: path
+          description: this is the unique id of the app the tags are in
+          required: true
+          type: string
+        - name: limit
+          in: query
+          description: number of results
+          required: false
+          type: string
+        - name: text
+          in: query
+          description: text of tag to find
+          required: false
+          type: string
+      tags:
+        - tag
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /task/:
+    get:
+      summary: get task
+      description: Returns a list of all tasks matching the given filters and grouped by the specified group.
+      operationId: addtask
+      parameters:
+        - name: due_date
+          in: query
+          description: overdue, today, tomorrow, upcoming or later
+          required: false
+          type: string
+      tags:
+        - task
+      responses:
+        200:
+          description: task Information
+          schema:
+            $ref: '#/definitions/task'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      summary: Create task
+      description: Add a new task to an organization
+      operationId: createtask
+      parameters:
+        - name: task
+          in: body
+          description: task Information
+          required: true
+          schema:
+            $ref: '#/definitions/task'
+      tags:
+        - task
+      responses:
+        200:
+          description: task Information
+          schema:
+            $ref: '#/definitions/task'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /task/{taskIdentifier}:
+    get:
+      summary: Get task Information
+      description: Get the task with the given id
+      parameters:
+        - name: taskIdentifier
+          in: path
+          description: this is the unique id of the task
+          required: true
+          type: string
+      tags:
+        - task
+      responses:
+        200:
+          description: task Information
+          schema:
+            $ref: '#/definitions/task'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      summary: Update task
+      description: Updates the task with the given id
+      parameters:
+        - name: taskIdentifier
+          in: path
+          description: Updates the task with the given attributes. Any attributes not specified will remain unchanged.
+          required: true
+          type: string
+        - name: task
+          in: body
+          description: task Information
+          required: true
+          schema:
+            $ref: '#/definitions/task'
+      tags:
+        - task
+      responses:
+        200:
+          description: task Information
+          schema:
+            $ref: '#/definitions/task'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Delete task 
+      description: Deletes the task with the given id.
+      parameters:
+        - name: taskIdentifier
+          in: path
+          description: unique identifier for the task
+          required: true
+          type: string
+        - name: hook
+          in: query
+          description:  if hooks should be executed for the change or not 
+          required: false
+          type: string
+        - name: silent
+          in: query
+          description: If set to "true", the object will not be bumped up in the stream and notifications will not be generated. 
+          required: false
+          type: string
+      tags:
+        - task
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /task/label/:
+    get:
+      summary: Returns the users task labels.
+      description: Returns the users task labels.
+      operationId: gettask
+      tags:
+        - task
+      responses:
+        200:
+          description: task information
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      summary: Create task label
+      description: Add a new task label to an organization
+      operationId: addtasklabel
+      parameters:
+        - name: text
+          in: query
+          description: The name of the new label
+          required: true
+          type: string
+        - name: color
+          in: query
+          description: The color of the label in hex format (xxxxxx)
+          required: true
+          type: string
+      tags:
+        - task
+      responses:
+        200:
+          description: task label id
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /task/label/{labelIdentifier}:
+    get:
+      summary: Get task label information
+      description: Get the task with the given id
+      parameters:
+        - name: labelIdentifier
+          in: path
+          description: this is the unique id of the task label
+          required: true
+          type: string
+      tags:
+        - task
+      responses:
+        200:
+          description: task label Information
+          schema:
+            $ref: '#/definitions/tasklabel'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      summary: Update task label
+      description: Updates the task label with the given id
+      parameters:
+        - name: labelIdentifier
+          in: path
+          description: unique identifier of the task label
+          required: true
+          type: string
+        - name: task
+          in: body
+          description: task Information
+          required: true
+          schema:
+            $ref: '#/definitions/task'
+      tags:
+        - task
+      responses:
+        200:
+          description: task label information
+          schema:
+            $ref: '#/definitions/task'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Delete label 
+      description: Deletes the label with the given id. This will remove the label from all tasks.
+      parameters:
+        - name: labelIdentifier
+          in: path
+          description: unique identifier for the task label
+          required: true
+          type: string
+      tags:
+        - task
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /task/{taskIdentifier}/restore/:
+    post:
+      summary: Restore an archived worktask
+      description: Restores an archived worktask. This unhides it from navigation, but doesn't do anything other than that.
+      parameters:
+        - name: taskIdentifier
+          in: path
+          description: this is the unique id of the task
+          required: true
+          type: string
+      tags:
+        - task
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /task/{taskIdentifier}/archive/:
+    get:
+      summary: Archives the worktask.
+      description: Archives the worktask. This hides it from navigation, but doesn't do anything other than that.
+      parameters:
+        - name: taskIdentifier
+          in: path
+          description: this is the unique id of the task
+          required: true
+          type: string
+      tags:
+        - task
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /task/{taskIdentifier}/available/:
+    get:
+      summary: Returns the available seats
+      description: Returns the available seats. A null value means there is an unlimited number of available seats.
+      parameters:
+        - name: taskIdentifier
+          in: path
+          description: this is the unique id of the task
+          required: true
+          type: string
+      tags:
+        - task
+      responses:
+        200:
+          description: task Information
+          schema:
+            $ref: '#/definitions/task'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /task/org/{OrgIdentifier}/:
+    get:
+      summary: Returns the worktasks in the organization.
+      description: Returns the worktasks in the organization that are accesible for the active user.
+      parameters:
+        - name: OrgIdentifier
+          in: path
+          description: this is the unique id of the organization
+          required: true
+          type: string
+      tags:
+        - task
+      responses:
+        200:
+          description: task Information
+          schema:
+            $ref: '#/definitions/task'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+            
+  /task/org/{OrgIdentifier}/available/:
+    get:
+      summary: Returns the available tasks
+      description: Returns the available seats. A null value means there is an unlimited number of available seats.
+      parameters:
+        - name: OrgIdentifier
+          in: path
+          description: this is the unique id of the organization
+          required: true
+          type: string
+      tags:
+        - task
+      responses:
+        200:
+          description: task Information
+          schema:
+            $ref: '#/definitions/task'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
             
 definitions:
   Shares:
@@ -1795,6 +3875,310 @@ definitions:
         type: string
       url:
         type: string
+  Space:
+    type: object
+    properties:
+      org_id:
+        type: string
+        description: The id of the organization the space is in
+      privacy:
+        type: string
+        description: The privacy level of the space, either "open" or "closed", defaults to "closed"
+      auto_join:
+        type: boolean
+        description: True if new employees should be joined automatically, false otherwise, defaults to false
+      name:
+        type: string
+        description: The name of the space
+      post_on_new_app:
+        type: boolean
+        description: True if new apps should be announced with a status update, false otherwise
+      post_on_new_member:
+        type: boolean
+        description: True if new members should be announced with a status update, false otherwise
+  application:
+    type: object
+    properties:
+      space_id:
+        type: string
+        description: The id of the organization the space is in
+      config:
+        $ref: '#/definitions/app_config'
+        description: The privacy level of the space, either "open" or "closed", defaults to "closed"
+      fields:
+        type: array
+        items:
+          $ref: '#/definitions/Fields'
+          description: fields for the application
+          
+  app_config:
+    type: object
+    properties:
+      type: 
+        type: string
+        description: The type of the app, either "standard", "meeting" or "contact"
+      name: 
+        type: string
+        description: The name of the app
+      item_name: 
+        type: string
+        description: The name of each item in an app,
+      description: 
+        type: string
+        description: The description of the app,
+      usage: 
+        type: string
+        description: Description of how the app should be used,
+      external_id: 
+        type: string
+        description: The external id of the app. This can be used to store an id from an external system on the app,
+      icon: 
+        type: string
+        description: The name of the icon used to represent the app,
+      allow_edit: 
+        type: boolean
+        description: True if other members are allowed to edit items from the app, false otherwise,
+      default_view: 
+        type: string
+        description: The default view of the app items on the app main page (see area for more information),
+      allow_attachments: 
+        type: boolean
+        description: True if attachment of files to an item is allowed, false otherwise,
+      allow_comments: 
+        type: boolean
+        description: True if members can make comments on an item, false otherwise,
+      silent_creates: 
+        type: boolean
+        description: True if item creates should not be posted to the stream, false otherwise,
+      silent_edits: 
+        type: boolean
+        description: True if item edits should not be posted to the stream, false otherwise,
+      fivestar: 
+        type: boolean
+        description: True if fivestar rating is enabled on an item, false otherwise,
+      fivestar_label: 
+        type: boolean
+        description: If fivestar rating is enabled, this is the label that will be presented to the users,
+      approved: 
+        type: boolean
+        description: True if an item can be approved, false otherwise,
+      thumbs: 
+        type: boolean
+        description: True if an item can have a thumbs up or thumbs down, false otherwise,
+      thumbs_label:
+        type: boolean
+        description: If thumbs ratings are enabled, this is the label that will be presented to the users,
+      rsvp: 
+        type: boolean
+        description: True if RSVP is enabled, false otherwise,
+      rsvp_label: 
+        type: boolean
+        description: If RSVP is enabled, this is the label that will be presented to the users,
+      yesno: 
+        type: boolean
+        description: True if yes/no rating is enabled, false otherwise,
+      yesno_label: 
+        type: boolean
+        description: If yes/no is enabled, this is the label that will be presented to the users
+      tasks:
+        type: array
+        items:
+          $ref: '#/definitions/task'
+          description: The list of tasks to be automatically created when an item is created
+
+    
+  Fields:
+    type: object
+    properties:
+      type: 
+        type: string
+        description: The type of the field (see area for more information)
+      config:
+        $ref: '#/definitions/field_config'
+      
+  
+  field_config:
+    type: object
+    properties:
+      label: 
+        type: string
+        description: The label of the field, which is what the users will see
+      description: 
+        type: string
+        description: The description of the field, shown to the user when inserting and editing,
+      delta: 
+        type: integer
+        description: An integer indicating the order of the field compared to other fields,
+      settings: 
+        $ref: '#/definitions/field_settings' 
+        description: The settings of the field which depends on the type of the field (see area for more information),
+      mapping: 
+        type: string
+        description: The mapping of the field, see available mappings above,
+      required: 
+        type: boolean
+        description: True if the field is required when creating and editing items, false otherwise
+  
+  task:
+    type: object
+    properties:
+      label: 
+        type: string
+        description: The label of the field, which is what the users will see
+      description: 
+        type: string
+        description: The description of the field, shown to the user when inserting and editing,
+      delta: 
+        type: integer
+        description: An integer indicating the order of the field compared to other fields,
+      mapping: 
+        type: string
+        description: The mapping of the field, see available mappings above,
+      required: 
+        type: boolean
+        description: True if the field is required when creating and editing items, false otherwise 
+        
+  field_settings:
+    type: object
+    properties:
+      label: 
+        type: string
+        description: The label of the field, which is what the users will see
+      description: 
+        type: string
+        description: The description of the field, shown to the user when inserting and editing,
+      delta: 
+        type: integer
+        description: An integer indicating the order of the field compared to other fields,
+      mapping: 
+        type: string
+        description: The mapping of the field, see available mappings above,
+      required: 
+        type: boolean
+        description: True if the field is required when creating and editing items, false otherwise       
+        
+  comment:
+    type: object
+    properties:
+      value: 
+        type: string
+        description: The comment to be made,
+      external_id: 
+        type: string
+        description: The external id of the comment, if any,
+      embed_id: 
+        type: string
+        description: The id of an embedded link that has been created with the Add an mebed operation in the Embed area,
+      embed_url: 
+        type: string
+        description: The url to be attached
+  hook:
+    type: object
+    properties:
+      url: 
+        type: string
+        description: The url of endpoint
+      type: 
+        type: string
+        description:  The type of events to listen to, see the documentation for options
+  object:
+    type: object
+    properties:
+      external_id: 
+        type: string
+        description: The new external_id of the item,
+      fields: 
+        type: string
+        description: The values for each field, see the create item operation for details,
+      tags: 
+        type: string
+        description: The list of tags
+      reminder: 
+        $ref: '#/definitions/reminder' 
+        description: Optional reminder on this task
+      recurrence: 
+        $ref: '#/definitions/recurrence' 
+        description: The recurrence for the task, if any,
+      linked_account_id: 
+        type: string
+        description: The linked account to use for meetings,
+      ref:
+        $ref: '#/definitions/object_ref' 
+        description: The settings of the field which depends on the type of the field (see area for more information),The reference of the item
+
+  recurrence:
+    type: object
+    properties:
+      name: 
+        type: string
+        description: The name of the recurrence, "weekly", "monthly" or "yearly"
+      config: 
+        $ref: '#/definitions/recurrence_config' 
+        description: The configuration for the recurrence, depends on the type
+      step: 
+        type: integer
+        description: The step size, 1 or more
+      until: 
+        type: string
+        description: The latest date the recurrence should take place
+
+  recurrence_config:
+    type: object
+    properties:
+      days: 
+        type: string
+        description: List of weekdays ("monday", "tuesday", etc) (for "weekly")
+      repeat_on: 
+        type: string
+        description: When to repeat, "day_of_week" or "day_of_month" (for "monthly")
+  reminder:
+    type: object
+    properties:
+      remind_delta: 
+        type: integer
+        description: Minutes (integer) to remind before the due date
+    
+  object_ref:
+    type: object
+    properties:
+      type:
+        type: string
+        description: reference type
+      id:
+        type: string
+        description: reference id
+  search:
+    type: object
+    properties:
+      query: 
+        type: string
+        description: The text to search for
+      limit: 
+        type: integer
+        description: (optional) The number of results to return; up to 20 results are returned in one call.
+      offset: 
+        type: integer
+        description: (optional) The rank of the first search result to return (default=0)
+      ref_type: 
+        type: string
+        description: The type of objects to search for. Can be one of "item", "task", "conversation", "app", "status", "file" and  "profile"
+  tag:
+    type: object
+    properties:
+      text: 
+        type: string
+        description: The text of a tag to be added
+  tasklabel:
+    type: object
+    properties:
+      text: 
+        type: string
+        description: The name of the new label
+      color: 
+        type: string
+        description: The color of the label in hex format (xxxxxx)        
+    
+
   Error:
     type: object
     properties:
