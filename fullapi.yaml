@@ -1276,7 +1276,7 @@ paths:
       summary: Create New entity
       description: Adds entity to table or creates a new table if none exists
       parameters:
-        - name: entityName
+        - name: EntityName
           in: path
           description: Unique name for the entity
           required: true
@@ -1838,7 +1838,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /app/{appIdentifier}/activate/:
+  /app/{AppIdentifier}/activate/:
     post:
       summary: Activates a deactivated app. 
       description: Activates a deactivated app. This puts the app back in the app navigator and allows insertion of new items.
@@ -1857,7 +1857,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /app/{appIdentifier}/deactivate/:
+  /app/{AppIdentifier}/deactivate/:
     post:
       summary: Deactivates an app. 
       description: Deactivates the app with the given id. This removes the app from the app navigator, and disables insertion of new items.
@@ -1876,7 +1876,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /app/{appIdentifier}/install/:
+  /app/{AppIdentifier}/install/:
     post:
       summary: Installs the app with the given id on the space.
       description: Installs the app with the given id on the space.
@@ -1900,7 +1900,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /app/{appIdentifier}/field/:
+  /app/{AppIdentifier}/field/:
     post:
       summary: Adds a new field to an app
       description: Adds a new field to an app
@@ -1925,7 +1925,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /app/{appIdentifier}/field/{fieldIdentifier}:
+  /app/{AppIdentifier}/field/{FieldIdentifier}:
     get:
       summary: Returns a single field from an app. 
       description: Returns a single field from an app. 
@@ -1935,7 +1935,7 @@ paths:
           description: this is the unique id of the app
           required: true
           type: string
-        - name: fieldIdentifier
+        - name: FieldIdentifier
           in: path
           description: this is the unique id of the field
           required: true
@@ -1960,7 +1960,7 @@ paths:
           description: this is the unique id of the app
           required: true
           type: string
-        - name: fieldIdentifier
+        - name: FieldIdentifier
           in: path
           description: this is the unique id of the field
           required: true
@@ -1991,7 +1991,7 @@ paths:
           description: this is the unique id of the app
           required: true
           type: string
-        - name: fieldIdentifier
+        - name: FieldIdentifier
           in: path
           description: this is the unique id of the field
           required: true
@@ -2007,7 +2007,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /app/{appIdentifier}/dependencies/:
+  /app/{AppIdentifier}/dependencies/:
     get:
       summary: Returns the apps that the given app depends on.
       description: Returns the apps that the given app depends on.
@@ -2234,7 +2234,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /comment/{commentIdentifier}/revision/:
+  /comment/{CommentIdentifier}/revision/:
     post:
       summary: Returns all revisions on a comment
       description: Returns all the revisions on the given comment, including the current revision. Revisions are returned with the oldest first.
@@ -2369,7 +2369,7 @@ paths:
       summary: Delete hook 
       description: Deletes the hook with the given id. 
       parameters:
-        - name: hookIdentifier
+        - name: HookIdentifier
           in: path
           description: unique identifier for the hook
           required: true
@@ -2500,7 +2500,7 @@ paths:
       summary: Delete object 
       description: Deletes an object and removes it from all views. The object can no longer be retrieved.
       parameters:
-        - name: objectIdentifier
+        - name: ObjectIdentifier
           in: path
           description: unique identifier for the object
           required: true
@@ -3262,7 +3262,7 @@ paths:
             $ref: '#/definitions/Error'
   /task/:
     get:
-      summary: get task
+      summary: get tasks
       description: Returns a list of all tasks matching the given filters and grouped by the specified group.
       operationId: addtask
       parameters:
@@ -3482,10 +3482,10 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /task/{TaskIdentifier}/restore/:
+  /task/{TaskIdentifier}/incomplete/:
     post:
-      summary: Restore an archived worktask
-      description: Restores an archived worktask. This unhides it from navigation, but doesn't do anything other than that.
+      summary: Mark the completed task as no longer being completed.
+      description: Mark the completed task as no longer being completed.
       parameters:
         - name: TaskIdentifier
           in: path
@@ -3501,14 +3501,24 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /task/{TaskIdentifier}/archive/:
-    get:
-      summary: Archives the worktask.
-      description: Archives the worktask. This hides it from navigation, but doesn't do anything other than that.
+  /task/{TaskIdentifier}/rank/:
+    post:
+      summary: Ranks the task in comparision to one or two other tasks.
+      description: Ranks the task in comparision to one or two other tasks.
       parameters:
-        - name: taskIdentifier
+        - name: TaskIdentifier
           in: path
           description: this is the unique id of the task
+          required: true
+          type: string
+        - name: after
+          in: query
+          description: The other task the updated task has to be after
+          required: true
+          type: string
+        - name: before
+          in: query
+          description: The other task the updated task has to be before
           required: true
           type: string
       tags:
@@ -3520,12 +3530,37 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /task/{TaskIdentifier}/available/:
+  /task/{TaskIdentifier}/assign/:
     get:
-      summary: Returns the available seats
+      summary: Assigns the task to another user.
+      description: Assigns the task to another user. This makes the user responsible for the task and its completion.
+      parameters:
+        - name: TaskIdentifier
+          in: path
+          description: this is the unique id of the task
+          required: true
+          type: string
+        - name: responsible
+          description: The contact responsible (user_id), or null if no one should be responsible
+          in: query
+          required: true
+          type: string
+
+      tags:
+        - Task
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /task/{TaskIdentifier}/complete/:
+    get:
+      summary: Mark the given task as completed.
       description: Returns the available seats. A null value means there is an unlimited number of available seats.
       parameters:
-        - name: taskIdentifier
+        - name: TaskIdentifier
           in: path
           description: this is the unique id of the task
           required: true
@@ -3541,10 +3576,31 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /task/org/{OrgIdentifier}/:
+  /task/summary/:
     get:
-      summary: Returns the worktasks in the organization.
-      description: Returns the worktasks in the organization that are accesible for the active user.
+      summary: Returns the task summary for the active user
+      description: Returns the task summary for the active user
+      parameters:
+        - name: limit
+          in: query
+          description: The maximum number of tasks to return in each group
+          required: false
+          type: string
+      tags:
+        - Task
+      responses:
+        200:
+          description: task Information
+          schema:
+            $ref: '#/definitions/task'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /task/org/{OrgIdentifier}/summary/:
+    get:
+      summary: Returns the task summary for the organization for the active user
+      description: Returns the task summary for the organization for the active user
       parameters:
         - name: OrgIdentifier
           in: path
@@ -3562,7 +3618,6 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-            
   /task/org/{OrgIdentifier}/available/:
     get:
       summary: Returns the available tasks
@@ -3584,8 +3639,117 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-
-            
+  /task/space/{SpaceIdentifier}/summary/:
+    get:
+      summary: Returns the task summary for the space 
+      description: Returns the task summary for the space for 
+      parameters:
+        - name: SpaceIdentifier
+          in: path
+          description: this is the unique id of the organization
+          required: true
+          type: string
+      tags:
+        - Task
+      responses:
+        200:
+          description: task Information
+          schema:
+            $ref: '#/definitions/task'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /task/{RefType}/{RefIdentifier}:
+    get:
+      summary: Get task Information
+      description: Get the task with the given id
+      parameters:
+        - name: RefType
+          in: path
+          description: this is the unique id of the task
+          required: true
+          type: string
+        - name: RefIdentifier
+          in: path
+          description: this is the unique id of the task
+          required: true
+          type: string
+      tags:
+        - Task
+      responses:
+        200:
+          description: task Information
+          schema:
+            $ref: '#/definitions/task'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      summary: Update task
+      description: Updates the task with the given id
+      parameters:
+        - name: RefType
+          in: path
+          description: this is the unique id of the task
+          required: true
+          type: string
+        - name: RefIdentifier
+          in: path
+          description: this is the unique id of the task
+          required: true
+          type: string
+        - name: task
+          in: body
+          description: task Information
+          required: true
+          schema:
+            $ref: '#/definitions/task'
+      tags:
+        - Task
+      responses:
+        200:
+          description: task Information
+          schema:
+            $ref: '#/definitions/task'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Delete task 
+      description: Deletes the task with the given id.
+      parameters:
+        - name: RefType
+          in: path
+          description: this is the unique id of the task
+          required: true
+          type: string
+        - name: RefIdentifier
+          in: path
+          description: this is the unique id of the task
+          required: true
+          type: string
+        - name: hook
+          in: query
+          description:  if hooks should be executed for the change or not 
+          required: false
+          type: string
+        - name: silent
+          in: query
+          description: If set to "true", the object will not be bumped up in the stream and notifications will not be generated. 
+          required: false
+          type: string
+      tags:
+        - Task
+      responses:
+        200:
+          description: Success
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
 definitions:
   Shares:
     type: object
