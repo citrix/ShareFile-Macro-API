@@ -1247,12 +1247,12 @@ paths:
           schema:
             $ref: '#/definitions/Error'   
             
-  /entity/{entityName}:
+  /entity/{EntityName}:
     get:
       summary: entity allow you to create a simple JSON database.  Simply post the json data to an entity name of your choosing and it will create a new table where you can get, create, update and delete json data 
       description: Gets all entity with given entity name
       parameters:
-        - name: entityName
+        - name: EntityName
           in: path
           type: string
           description: Unique name for the entity
@@ -1302,17 +1302,17 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /entity/{entityName}/{entityIdentifier}/:
+  /entity/{EntityName}/{EntityIdentifier}/:
     get:
       summary: Get specific entity
       description: Get a specific entity by id
       parameters:
-        - name: entityName
+        - name: EntityName
           in: path
           description: Unique name for the entity
           required: true
           type: string
-        - name: entityIdentifier
+        - name: EntityIdentifier
           in: path
           description: Unique Identifier for the entity
           required: true
@@ -1336,12 +1336,12 @@ paths:
       summary: Modify a specific entity
       description: Pass in any additional parameters for the entity by id, new properties will be added and properties of the same name will be overwritten
       parameters:
-        - name: entityName
+        - name: EntityName
           in: path
           description: Unique name for the entity
           required: true
           type: string
-        - name: entityIdentifier
+        - name: EntityIdentifier
           in: path
           description: Unqiue Identifier for the entity 
           required: true
@@ -1371,12 +1371,12 @@ paths:
       summary: Remove specific entity from database
       description: Removes the entity data from the table
       parameters:
-        - name: entityName
+        - name: EntityName
           in: path
           description: Unique name for the entity
           required: true
           type: string
-        - name: entityIdentifier
+        - name: EntityIdentifier
           in: path
           description: Unique Identifier for the entity
           required: true
@@ -1396,17 +1396,17 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /entity/{entityName}/{entityIdentifier}/{PropertyName}:
+  /entity/{EntityName}/{EntityIdentifier}/{PropertyName}:
     get:
       summary: Get specific property on an entity
       description: Get a specific property for an entity by id
       parameters:
-        - name: entityName
+        - name: EntityName
           in: path
           description: Unique name for the entity
           required: true
           type: string
-        - name: entityIdentifier
+        - name: EntityIdentifier
           in: path
           description: Unique Identifier for the entity
           required: true
@@ -1435,12 +1435,12 @@ paths:
       summary: Modify a specific entity property
       description: Creates or updates JSON data on the property.  Property stores a full JSON entity instead of a simple string.  If you only want to modify the property as a string use the PATCH /entity/{entityName}/{entityIdentifier} endpoint
       parameters:
-        - name: entityName
+        - name: EntityName
           in: path
           description: Unique name for the entity
           required: true
           type: string
-        - name: entityIdentifier
+        - name: EntityIdentifier
           in: path
           description: Unqiue Identifier for the entity 
           required: true
@@ -1475,12 +1475,12 @@ paths:
       summary: Remove specific property from the entity
       description: Removes the entity property
       parameters:
-        - name: entityName
+        - name: EntityName
           in: path
           description: Unique name for the entity
           required: true
           type: string
-        - name: entityIdentifier
+        - name: EntityIdentifier
           in: path
           description: Unique Identifier for the entity
           required: true
@@ -1518,7 +1518,7 @@ paths:
           schema:
             $ref: '#/definitions/Space'
       tags:
-        - Spaces
+        - Space
       responses:
         200:
           description: Space Information
@@ -1539,7 +1539,7 @@ paths:
           required: true
           type: string
       tags:
-        - Spaces
+        - Space
       responses:
         200:
           description: Space Information
@@ -1565,7 +1565,7 @@ paths:
           schema:
             $ref: '#/definitions/Space'
       tags:
-        - Shares
+        - Space
       responses:
         200:
           description: Space Information
@@ -1585,7 +1585,7 @@ paths:
           required: true
           type: string
       tags:
-        - Shares
+        - Space
       responses:
         200:
           description: Success
@@ -1773,12 +1773,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /app/{appIdentifier}:
+  /app/{AppIdentifier}:
     get:
       summary: Get app Information
       description: Gets the definition of an app and can include configuration and fields. This method will always return the latest revision of the app definition.
       parameters:
-        - name: appIdentifier
+        - name: AppIdentifier
           in: path
           description: this is the unique id of the app
           required: true
@@ -1798,7 +1798,7 @@ paths:
       summary: Update app
       description: Updates an app. The update can contain an new configuration for the app, addition of new fields as well as updates to the configuration of existing fields. Fields not included will not be deleted. To delete a field use the "delete field" operation. When adding/updating/deleting apps and fields, it can be simpler to only update the app config here and add/update/remove fields using the field/{field_id} sub resource.
       parameters:
-        - name: appIdentifier
+        - name: AppIdentifier
           in: path
           description: unique identifier of the app
           required: true
@@ -1824,7 +1824,7 @@ paths:
       summary: Delete app 
       description: Deletes the app with the given id. This will delete all items, widgets, filters and shares on the app. This operation is not reversible.
       parameters:
-        - name: appIdentifier
+        - name: AppIdentifier
           in: path
           description: unique identifier for the app
           required: true
@@ -1843,7 +1843,7 @@ paths:
       summary: Activates a deactivated app. 
       description: Activates a deactivated app. This puts the app back in the app navigator and allows insertion of new items.
       parameters:
-        - name: appIdentifier
+        - name: AppIdentifier
           in: path
           description: this is the unique id of the app
           required: true
@@ -1862,7 +1862,7 @@ paths:
       summary: Deactivates an app. 
       description: Deactivates the app with the given id. This removes the app from the app navigator, and disables insertion of new items.
       parameters:
-        - name: appIdentifier
+        - name: AppIdentifier
           in: path
           description: this is the unique id of the app
           required: true
@@ -1881,7 +1881,7 @@ paths:
       summary: Installs the app with the given id on the space.
       description: Installs the app with the given id on the space.
       parameters:
-        - name: appIdentifier
+        - name: AppIdentifier
           in: path
           description: this is the unique id of the app
           required: true
@@ -1905,7 +1905,7 @@ paths:
       summary: Adds a new field to an app
       description: Adds a new field to an app
       parameters:
-        - name: appIdentifier
+        - name: AppIdentifier
           in: path
           description: this is the unique id of the app
           required: true
@@ -1930,7 +1930,7 @@ paths:
       summary: Returns a single field from an app. 
       description: Returns a single field from an app. 
       parameters:
-        - name: appIdentifier
+        - name: AppIdentifier
           in: path
           description: this is the unique id of the app
           required: true
@@ -1955,7 +1955,7 @@ paths:
       summary: Update an app field
       description: Updates the configuration of an app field. The type of the field cannot be updated, only the configuration.
       parameters:
-        - name: appIdentifier
+        - name: AppIdentifier
           in: path
           description: this is the unique id of the app
           required: true
@@ -1986,7 +1986,7 @@ paths:
       summary: Deletes a field on an app.
       description: Deletes a field on an app. When deleting a field any new items and updates to existing items will not have this field present. For existing items, the field will still be presented when viewing the item.
       parameters:
-        - name: appIdentifier
+        - name: AppIdentifier
           in: path
           description: this is the unique id of the app
           required: true
@@ -2012,7 +2012,7 @@ paths:
       summary: Returns the apps that the given app depends on.
       description: Returns the apps that the given app depends on.
       parameters:
-        - name: appIdentifier
+        - name: AppIdentifier
           in: path
           description: this is the unique id of the app
           required: true
@@ -2029,12 +2029,12 @@ paths:
           schema:
             $ref: '#/definitions/Error'
             
-  /app/space/{spaceIdentifier}/:
+  /app/space/{SpaceIdentifier}/:
     get:
       summary: Returns all the apps on the space that are visible.
       description: Returns all the apps on the space that are visible. The apps are sorted by any custom ordering and else by name.
       parameters:
-        - name: spaceIdentifier
+        - name: SpaceIdentifier
           in: path
           description: this is the unique id of the space
           required: true
@@ -2103,12 +2103,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'    
-  /space/{spaceIdentifier}/dependencies/:
+  /space/{SpaceIdentifier}/dependencies/:
     get:
       summary: Returns all the active apps on the space along with their dependencies.
       description: Returns all the active apps on the space along with their dependencies. The dependencies are only one level deep.
       parameters:
-        - name: spaceIdentifier
+        - name: SpaceIdentifier
           in: path
           description: this is the unique id of the space
           required: true
@@ -2125,12 +2125,12 @@ paths:
           schema:
             $ref: '#/definitions/Error'
             
-  /app/org/{orgIdentifier}/top/:
+  /app/org/{OrgIdentifier}/top/:
     get:
       summary: Returns the top apps for the user inside the given organization
       description: Returns the top apps for the user inside the given organization
       parameters:
-        - name: orgIdentifier
+        - name: OrgIdentifier
           in: path
           description: this is the unique id of the organization
           required: true
@@ -2169,12 +2169,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /comment/{commentIdentifier}:
+  /comment/{CommentIdentifier}:
     get:
       summary: Get comment Information
       description: Get the comment with the given id. It is not possible to see where the comment was made, only the comment itself.
       parameters:
-        - name: commentIdentifier
+        - name: CommentIdentifier
           in: path
           description: this is the unique id of the comment
           required: true
@@ -2194,7 +2194,7 @@ paths:
       summary: Update comment
       description: Updates the comment with the given id This should only be used to correct spelling and grammatical mistakes in the comment.
       parameters:
-        - name: commentIdentifier
+        - name: CommentIdentifier
           in: path
           description: unique identifier of the comment
           required: true
@@ -2220,7 +2220,7 @@ paths:
       summary: Delete comment 
       description: Deletes the comment with the given id. This can be used to retract a comment that was made and which the user regrets.
       parameters:
-        - name: commentIdentifier
+        - name: CommentIdentifier
           in: path
           description: unique identifier for the comment
           required: true
@@ -2239,7 +2239,7 @@ paths:
       summary: Returns all revisions on a comment
       description: Returns all the revisions on the given comment, including the current revision. Revisions are returned with the oldest first.
       parameters:
-        - name: commentIdentifier
+        - name: CommentIdentifier
           in: path
           description: this is the unique id of the comment
           required: true
@@ -2253,17 +2253,17 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /comment/{objectType}/{objectIdentifier}/:
+  /comment/{ObjectType}/{ObjectIdentifier}/:
     get:
       summary: Retrieves the comments that have been made on an object
       description: Used to retrieve the comments that have been made on an object of the given type and with the given id. It returns a list of the comments sorted in ascending order by time created.
       parameters:
-        - name: objectIdentifier
+        - name: ObjectIdentifier
           in: path
           description: this is the unique id of the object
           required: true
           type: string
-        - name: objectType
+        - name: ObjectType
           in: path
           description: this is the type of object the comment is on
           required: true
@@ -2281,12 +2281,12 @@ paths:
       summary: Add comment to object
       description: Adds a new comment to the object of the given type and id, f.ex. item 1.
       parameters:
-        - name: objectIdentifier
+        - name: ObjectIdentifier
           in: path
           description: this is the unique id of the object
           required: true
           type: string
-        - name: objectType
+        - name: ObjectType
           in: path
           description: this is the type of object the comment is on
           required: true
@@ -2302,17 +2302,17 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /hook/{refType}/{refIdentifier}:
+  /hook/{RefType}/{RefIdentifier}:
     get:
       summary: Get hook Information
       description: Get the hook information on given reference 
       parameters:
-        - name: refType
+        - name: RefType
           in: path
           description: reference type hook is attached to
           required: true
           type: string
-        - name: refIdentifier
+        - name: RefIdentifier
           in: path
           description: reference id 
           required: true
@@ -2333,12 +2333,12 @@ paths:
       description: Create a new hook on the given object.
       operationId: addhook
       parameters:
-        - name: refType
+        - name: RefType
           in: path
           description: reference type hook is attached to
           required: true
           type: string
-        - name: refIdentifier
+        - name: RefIdentifier
           in: path
           description: reference id 
           required: true
@@ -2364,7 +2364,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /hook/{hookIdentifier}:
+  /hook/{HookIdentifier}:
     delete:
       summary: Delete hook 
       description: Deletes the hook with the given id. 
@@ -2383,12 +2383,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /hook/{hookIdentifier}/verify/request:
+  /hook/{HookIdentifier}/verify/request:
     post:
       summary: Request the hook to be validated.
       description: Request the hook to be validated. This will cause the hook to send a request to the URL with the parameter "type" set to "hook.verify" and "code" set to the verification code. The endpoint must then call the validate method with the code to complete the verification.
       parameters:
-        - name: hookIdentifier
+        - name: HookIdentifier
           in: path
           description: this is the unique id of the hook
           required: true
@@ -2402,12 +2402,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /hook/{hookIdentifier}/verify/validate:
+  /hook/{HookIdentifier}/verify/validate:
     post:
       summary: Validate the webhook
       description: Validates the hook using the code received from the verify call. On successful validation the hook will become active.
       parameters:
-        - name: hookIdentifier
+        - name: HookIdentifier
           in: path
           description: this is the unique id of the hook
           required: true
@@ -2421,13 +2421,13 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /object/app/{appIdentifier}/:
+  /object/app/{AppIdentifier}/:
     post:
       summary: Create object
       description: Add a new object to an organization
       operationId: addobject
       parameters:
-        - name: appIdentifier
+        - name: AppIdentifier
           in: path
           description: unique id for the application
           required: true
@@ -2449,12 +2449,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /object/{objectIdentifier}:
+  /object/{ObjectIdentifier}:
     get:
       summary: Get object Information
       description: Get the object with the given id
       parameters:
-        - name: objectIdentifier
+        - name: ObjectIdentifier
           in: path
           description: this is the unique id of the object
           required: true
@@ -2474,7 +2474,7 @@ paths:
       summary: Update object
       description: Update an already existing object. Values will only be updated for fields included. To delete all values for a field supply an empty array as values for that field.
       parameters:
-        - name: objectIdentifier
+        - name: ObjectIdentifier
           in: path
           description: unique identifier of the object
           required: true
@@ -2514,12 +2514,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /object/app/{appIdentifier}/delete/:
+  /object/app/{AppIdentifier}/delete/:
     post:
       summary: Bulk delete
       description: Deletes items from a given app based in bulk and removes them from all views. The data can no longer be retrieved.
       parameters:
-        - name: appIdentifier
+        - name: AppIdentifier
           in: path
           description: this is the unique id of the application
           required: true
@@ -2533,12 +2533,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /object/{objectIdentifier}/clone/:
+  /object/{ObjectIdentifier}/clone/:
     get:
       summary: Archives the workobject.
       description: Archives the workobject. This hides it from navigation, but doesn't do anything other than that.
       parameters:
-        - name: objectIdentifier
+        - name: ObjectIdentifier
           in: path
           description: this is the unique id of the object
           required: true
@@ -2552,12 +2552,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /object/{objectIdentifier}/available/:
+  /object/{ObjectIdentifier}/available/:
     get:
       summary: Returns the available seats
       description: Returns the available seats. A null value means there is an unlimited number of available seats.
       parameters:
-        - name: objectIdentifier
+        - name: ObjectIdentifier
           in: path
           description: this is the unique id of the object
           required: true
@@ -2689,12 +2689,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /search/app/{appIdentifier}/:
+  /search/app/{AppIdentifier}/:
     post:
       summary: Search in app
       description: Searches in all items and tasks in the app.
       parameters:
-        - name: appIdentifier
+        - name: AppIdentifier
           in: path
           description: this is the unique id of the app
           required: true
@@ -2713,12 +2713,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /search/app/{appIdentifier}/v2/:
+  /search/app/{AppIdentifier}/v2/:
     get:
       summary: Search in app v2
       description: Searches in all items, files, and tasks in the application. The objects will be returned sorted descending by the time the object had any update.
       parameters:
-        - name: appIdentifier
+        - name: AppIdentifier
           in: path
           description: this is the unique id of the app
           required: true
@@ -2767,17 +2767,17 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /search/app/{appIdentifier}/space/{spaceIdentifier}:
+  /search/app/{AppIdentifier}/space/{SpaceIdentifier}:
     get:
       summary: Searches an app in a space
       description: Searches in all objects and tasks in the app and space.
       parameters:
-        - name: appIdentifier
+        - name: AppIdentifier
           in: path
           description: this is the unique id of the app
           required: true
           type: string
-        - name: spaceIdentifier
+        - name: SpaceIdentifier
           in: path
           description: this is the unique id of the space
           required: true
@@ -2826,12 +2826,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /search/org/{orgIdentifier}/:
+  /search/org/{OrgIdentifier}/:
     post:
       summary: Searches in organization.
       description: Searches in all items, statuses and non-private tasks in the organization.
       parameters:
-        - name: orgIdentifier
+        - name: OrgIdentifier
           in: path
           description: this is the unique id of the organization
           required: true
@@ -2850,12 +2850,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /search/org/{orgIdentifier}/v2/:
+  /search/org/{OrgIdentifier}/v2/:
     get:
       summary: Search in organization v2
       description: Searches in all items, statuses, files, profiles, apps and non-private tasks in the organization. The objects will be returned sorted descending by the time the object had any update.
       parameters:
-        - name: orgIdentifier
+        - name: OrgIdentifier
           in: path
           description: this is the unique id of the organization
           required: true
@@ -2904,12 +2904,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /search/space/{spaceIdentifier}/:
+  /search/space/{SpaceIdentifier}/:
     post:
       summary: Search in space
       description: Searches in all items, statuses and non-private tasks in the space. The objects will be returned sorted descending by the time the object had any update.
       parameters:
-        - name: spaceIdentifier
+        - name: SpaceIdentifier
           in: path
           description: this is the unique id of the space
           required: true
@@ -2928,12 +2928,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /search/space/{spaceIdentifier}/v2/:
+  /search/space/{SpaceIdentifier}/v2/:
     get:
       summary: Search in space v2
       description: Searches in all items, statuses and non-private tasks in the space. The objects will be returned sorted descending by the time the object had any update.
       parameters:
-        - name: spaceIdentifier
+        - name: SpaceIdentifier
           in: path
           description: this is the unique id of the space
           required: true
@@ -2982,18 +2982,18 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /tag/{refType}/{refIdentifier}:
+  /tag/{RefType}/{RefIdentifier}:
     post:
       summary: Create tag
       description: Adds additional tags to the object. If a tag with the same text is already present, the tag will be ignored. Existing tags on the object are preserved.
       operationId: addtag
       parameters:
-        - name: refType
+        - name: RefType
           in: path
           description: reference type hook is attached to
           required: true
           type: string
-        - name: refIdentifier
+        - name: RefIdentifier
           in: path
           description: reference id 
           required: true
@@ -3018,12 +3018,12 @@ paths:
       summary: Update tag
       description: Updates the tag with the given id
       parameters:
-        - name: refType
+        - name: RefType
           in: path
           description: reference type hook is attached to
           required: true
           type: string
-        - name: refIdentifier
+        - name: RefIdentifier
           in: path
           description: reference id 
           required: true
@@ -3048,12 +3048,12 @@ paths:
       summary: Delete tag 
       description: Deletes the tag with the given id. This will also end all memberships of the tag and cancel any tag invites still outstanding.
       parameters:
-        - name: refType
+        - name: RefType
           in: path
           description: reference type hook is attached to
           required: true
           type: string
-        - name: refIdentifier
+        - name: RefIdentifier
           in: path
           description: reference id 
           required: true
@@ -3072,12 +3072,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /tag/space/{spaceIdentifier}/:
+  /tag/space/{SpaceIdentifier}/:
     get:
       summary: Returns the tags on the given space.
       description: Returns the tags on the given space. This includes both items and statuses. The tags are first limited ordered by their frequency of use, and then returned sorted alphabetically.
       parameters:
-        - name: spaceIdentifier
+        - name: SpaceIdentifier
           in: path
           description: this is the unique id of the space the tags are in
           required: true
@@ -3101,12 +3101,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /tag/space/{spaceIdentifier}/search/:
+  /tag/space/{SpaceIdentifier}/search/:
     get:
       summary: Get objects on space with tag
       description: Returns the objects that are tagged with the given text on the space. The objects are returned sorted descending by the time the tag was added.
       parameters:
-        - name: spaceIdentifier
+        - name: SpaceIdentifier
           in: path
           description: this is the unique id of the space the tags are in
           required: true
@@ -3125,12 +3125,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /tag/org/{orgIdentifier}/:
+  /tag/org/{OrgIdentifier}/:
     get:
       summary: Returns the tags on the given organization.
       description: Returns the tags on the given org. This includes both items and statuses on all spaces in the organization that the user is part of. The tags are first limited ordered by their frequency of use, and then returned sorted alphabetically.
       parameters:
-        - name: orgIdentifier
+        - name: OrgIdentifier
           in: path
           description: this is the unique id of the organization the tags are in
           required: true
@@ -3154,12 +3154,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /tag/org/{orgIdentifier}/search/:
+  /tag/org/{OrgIdentifier}/search/:
     get:
       summary: Get objects on organization with tag
       description: Returns the objects that are tagged with the given text on the organization. The objects are returned sorted descending by the time the tag was added.
       parameters:
-        - name: orgIdentifier
+        - name: OrgIdentifier
           in: path
           description: this is the unique id of the organization the tags are in
           required: true
@@ -3178,12 +3178,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /tag/app/{appIdentifier}/:
+  /tag/app/{AppIdentifier}/:
     get:
       summary: Returns the tags on the given application.
       description: Returns the tags on the given app. This includes only items. The tags are first limited ordered by their frequency of use, and then returned sorted alphabetically.
       parameters:
-        - name: appIdentifier
+        - name: AppIdentifier
           in: path
           description: this is the unique id of the app the tags are in
           required: true
@@ -3207,12 +3207,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /tag/app/{appIdentifier}/search/:
+  /tag/app/{AppIdentifier}/search/:
     get:
       summary: Get objects on app with tag
       description: Returns the objects that are tagged with the given text on the app. The objects are returned sorted descending by the time the tag was added.
       parameters:
-        - name: appIdentifier
+        - name: AppIdentifier
           in: path
           description: this is the unique id of the app the tags are in
           required: true
@@ -3231,12 +3231,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /tag/app/{appIdentifier}/top/:
+  /tag/app/{AppIdentifier}/top/:
     get:
       summary: Returns the top tags on the app.
       description: Returns the top tags on the app.
       parameters:
-        - name: appIdentifier
+        - name: AppIdentifier
           in: path
           description: this is the unique id of the app the tags are in
           required: true
@@ -3304,12 +3304,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /task/{taskIdentifier}:
+  /task/{TaskIdentifier}:
     get:
       summary: Get task Information
       description: Get the task with the given id
       parameters:
-        - name: taskIdentifier
+        - name: TaskIdentifier
           in: path
           description: this is the unique id of the task
           required: true
@@ -3329,7 +3329,7 @@ paths:
       summary: Update task
       description: Updates the task with the given id
       parameters:
-        - name: taskIdentifier
+        - name: TaskIdentifier
           in: path
           description: Updates the task with the given attributes. Any attributes not specified will remain unchanged.
           required: true
@@ -3355,7 +3355,7 @@ paths:
       summary: Delete task 
       description: Deletes the task with the given id.
       parameters:
-        - name: taskIdentifier
+        - name: TaskIdentifier
           in: path
           description: unique identifier for the task
           required: true
@@ -3417,12 +3417,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /task/label/{labelIdentifier}:
+  /task/label/{LabelIdentifier}:
     get:
       summary: Get task label information
       description: Get the task with the given id
       parameters:
-        - name: labelIdentifier
+        - name: LabelIdentifier
           in: path
           description: this is the unique id of the task label
           required: true
@@ -3442,7 +3442,7 @@ paths:
       summary: Update task label
       description: Updates the task label with the given id
       parameters:
-        - name: labelIdentifier
+        - name: LabelIdentifier
           in: path
           description: unique identifier of the task label
           required: true
@@ -3468,7 +3468,7 @@ paths:
       summary: Delete label 
       description: Deletes the label with the given id. This will remove the label from all tasks.
       parameters:
-        - name: labelIdentifier
+        - name: LabelIdentifier
           in: path
           description: unique identifier for the task label
           required: true
@@ -3482,12 +3482,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /task/{taskIdentifier}/restore/:
+  /task/{TaskIdentifier}/restore/:
     post:
       summary: Restore an archived worktask
       description: Restores an archived worktask. This unhides it from navigation, but doesn't do anything other than that.
       parameters:
-        - name: taskIdentifier
+        - name: TaskIdentifier
           in: path
           description: this is the unique id of the task
           required: true
@@ -3501,7 +3501,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /task/{taskIdentifier}/archive/:
+  /task/{TaskIdentifier}/archive/:
     get:
       summary: Archives the worktask.
       description: Archives the worktask. This hides it from navigation, but doesn't do anything other than that.
@@ -3520,7 +3520,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /task/{taskIdentifier}/available/:
+  /task/{TaskIdentifier}/available/:
     get:
       summary: Returns the available seats
       description: Returns the available seats. A null value means there is an unlimited number of available seats.
