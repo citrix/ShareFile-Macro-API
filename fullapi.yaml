@@ -1,7 +1,7 @@
 # this the outline of the ShareFIle Macro API.
 swagger: '2.0'
 info:
-  title: ShareFile  API
+  title: Cloud Services API
   description: v3 API
   version: "3.0.1"
 # the domain of the service
@@ -1264,7 +1264,7 @@ paths:
         - $ref: '#/parameters/username'
         - $ref: '#/parameters/password'
       tags:
-        - entitys
+        - Entity
       responses:
         200:
           description: List of entitys that were inserted into the table
@@ -1294,7 +1294,7 @@ paths:
         - $ref: '#/parameters/username'
         - $ref: '#/parameters/password'
       tags:
-        - entitys
+        - Entity
       responses:
         200:
           description: Id for the new entry is returned as well as entity count
@@ -1604,7 +1604,7 @@ paths:
           required: true
           type: string
       tags:
-        - Spaces
+        - Space
       responses:
         200:
           description: Success
@@ -1623,7 +1623,7 @@ paths:
           required: true
           type: string
       tags:
-        - Spaces
+        - Space
       responses:
         200:
           description: Success
@@ -1642,7 +1642,7 @@ paths:
           required: true
           type: string
       tags:
-        - Spaces
+        - Space
       responses:
         200:
           description: Space Information
@@ -1663,7 +1663,7 @@ paths:
           required: true
           type: string
       tags:
-        - Spaces
+        - Space
       responses:
         200:
           description: Space Information
@@ -1685,7 +1685,7 @@ paths:
           required: true
           type: string
       tags:
-        - Spaces
+        - Space
       responses:
         200:
           description: Space Information
@@ -1741,10 +1741,10 @@ paths:
           required: false
           type: string
       tags:
-        - app
+        - App
       responses:
         200:
-          description: app Information
+          description: Application Information
           schema:
             $ref: '#/definitions/application'
         default:
@@ -1763,7 +1763,7 @@ paths:
           schema:
             $ref: '#/definitions/application'
       tags:
-        - app
+        - App
       responses:
         200:
           description: app Information
@@ -1784,7 +1784,7 @@ paths:
           required: true
           type: string
       tags:
-        - app
+        - App
       responses:
         200:
           description: app Information
@@ -1810,7 +1810,7 @@ paths:
           schema:
             $ref: '#/definitions/application'
       tags:
-        - app
+        - App
       responses:
         200:
           description: app Information
@@ -1830,7 +1830,7 @@ paths:
           required: true
           type: string
       tags:
-        - app
+        - App
       responses:
         200:
           description: Success
@@ -1849,7 +1849,7 @@ paths:
           required: true
           type: string
       tags:
-        - app
+        - App
       responses:
         200:
           description: Success
@@ -1868,7 +1868,7 @@ paths:
           required: true
           type: string
       tags:
-        - app
+        - App
       responses:
         200:
           description: Success
@@ -1892,7 +1892,7 @@ paths:
           required: true
           type: string
       tags:
-        - app
+        - App
       responses:
         200:
           description: Success
@@ -1917,7 +1917,7 @@ paths:
           schema:
             $ref: '#/definitions/Fields'
       tags:
-        - app
+        - App
       responses:
         200:
           description: Success
@@ -1941,7 +1941,7 @@ paths:
           required: true
           type: string
       tags:
-        - app
+        - App
       responses:
         200:
           description: app Information
@@ -1972,7 +1972,7 @@ paths:
           schema:
             $ref: '#/definitions/Fields'
       tags:
-        - app
+        - App
       responses:
         200:
           description: app Information
@@ -1997,7 +1997,7 @@ paths:
           required: true
           type: string
       tags:
-        - app
+        - App
       responses:
         200:
           description: app Information
@@ -2018,7 +2018,7 @@ paths:
           required: true
           type: string
       tags:
-        - app
+        - App
       responses:
         200:
           description: app Information
@@ -2040,7 +2040,7 @@ paths:
           required: true
           type: string
       tags:
-        - app
+        - App
       responses:
         200:
           description: app Information
@@ -2067,7 +2067,7 @@ paths:
           required: false
           type: string
       tags:
-        - app
+        - App
       responses:
         200:
           description: app Information
@@ -2093,7 +2093,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - app
+        - App
       responses:
         200:
           description: app Information
@@ -2114,7 +2114,7 @@ paths:
           required: true
           type: string
       tags:
-        - app
+        - App
       responses:
         200:
           description: app Information
@@ -2136,7 +2136,7 @@ paths:
           required: true
           type: string
       tags:
-        - app
+        - App
       responses:
         200:
           description: app Information
@@ -2159,7 +2159,7 @@ paths:
           schema:
             $ref: '#/definitions/comment'
       tags:
-        - comment
+        - Comment
       responses:
         200:
           description: comment Information
@@ -2180,7 +2180,7 @@ paths:
           required: true
           type: string
       tags:
-        - comment
+        - Comment
       responses:
         200:
           description: comment Information
@@ -2206,7 +2206,7 @@ paths:
           schema:
             $ref: '#/definitions/comment'
       tags:
-        - comment
+        - Comment
       responses:
         200:
           description: comment Information
@@ -2226,7 +2226,7 @@ paths:
           required: true
           type: string
       tags:
-        - comment
+        - Comment
       responses:
         200:
           description: Success
@@ -2245,7 +2245,7 @@ paths:
           required: true
           type: string
       tags:
-        - comment
+        - Comment
       responses:
         200:
           description: Success
@@ -2269,7 +2269,7 @@ paths:
           required: true
           type: string
       tags:
-        - comments
+        - Comment
       responses:
         200:
           description: Success
@@ -2292,7 +2292,7 @@ paths:
           required: true
           type: string
       tags:
-        - comment
+        - Comment
       responses:
         200:
           description: comment Information
@@ -2318,7 +2318,7 @@ paths:
           required: true
           type: string
       tags:
-        - hook
+        - Hook
       responses:
         200:
           description: hook Information
@@ -2354,7 +2354,7 @@ paths:
           required: true
           type: string
       tags:
-        - hook
+        - Hook
       responses:
         200:
           description: hook Information
@@ -2375,7 +2375,7 @@ paths:
           required: true
           type: string
       tags:
-        - hook
+        - Hook
       responses:
         200:
           description: Success
@@ -2394,7 +2394,7 @@ paths:
           required: true
           type: string
       tags:
-        - hook
+        - Hook
       responses:
         200:
           description: Success
@@ -2413,7 +2413,7 @@ paths:
           required: true
           type: string
       tags:
-        - hook
+        - Hook
       responses:
         200:
           description: Success
@@ -2439,7 +2439,7 @@ paths:
           schema:
             $ref: '#/definitions/object'
       tags:
-        - object
+        - Object
       responses:
         200:
           description: object Information
@@ -2460,7 +2460,7 @@ paths:
           required: true
           type: string
       tags:
-        - object
+        - Object
       responses:
         200:
           description: object Information
@@ -2486,7 +2486,7 @@ paths:
           schema:
             $ref: '#/definitions/object'
       tags:
-        - object
+        - Object
       responses:
         200:
           description: object Information
@@ -2506,7 +2506,7 @@ paths:
           required: true
           type: string
       tags:
-        - object
+        - Object
       responses:
         200:
           description: Success
@@ -2525,7 +2525,7 @@ paths:
           required: true
           type: string
       tags:
-        - object
+        - Object
       responses:
         200:
           description: Success
@@ -2544,7 +2544,7 @@ paths:
           required: true
           type: string
       tags:
-        - object
+        - Object
       responses:
         200:
           description: Success
@@ -2563,7 +2563,7 @@ paths:
           required: true
           type: string
       tags:
-        - object
+        - Object
       responses:
         200:
           description: object Information
@@ -2584,7 +2584,7 @@ paths:
           required: true
           type: string
       tags:
-        - object
+        - Object
       responses:
         200:
           description: object Information
@@ -2606,7 +2606,7 @@ paths:
           required: true
           type: string
       tags:
-        - object
+        - Object
       responses:
         200:
           description: object Information
@@ -2628,7 +2628,7 @@ paths:
           required: true
           type: string
       tags:
-        - search
+        - Search
       responses:
         200:
           description: search Information
@@ -2679,7 +2679,7 @@ paths:
           required: true
           type: string
       tags:
-        - search
+        - Search
       responses:
         200:
           description: search Information
@@ -2705,7 +2705,7 @@ paths:
           required: true
           type: string
       tags:
-        - search
+        - Search
       responses:
         200:
           description: Success
@@ -2759,7 +2759,7 @@ paths:
           required: true
           type: string
       tags:
-        - search
+        - Search
       responses:
         200:
           description: Success
@@ -2818,7 +2818,7 @@ paths:
           required: true
           type: string
       tags:
-        - search
+        - Search
       responses:
         200:
           description: Success
@@ -2842,7 +2842,7 @@ paths:
           required: true
           type: string
       tags:
-        - search
+        - Search
       responses:
         200:
           description: Success
@@ -2896,7 +2896,7 @@ paths:
           required: true
           type: string
       tags:
-        - search
+        - Search
       responses:
         200:
           description: Success
@@ -2920,7 +2920,7 @@ paths:
           required: true
           type: string
       tags:
-        - search
+        - Search
       responses:
         200:
           description: Success
@@ -2974,7 +2974,7 @@ paths:
           required: true
           type: string
       tags:
-        - search
+        - Search
       responses:
         200:
           description: Success
@@ -3004,7 +3004,7 @@ paths:
           required: true
           type: string
       tags:
-        - tag
+        - Tag
       responses:
         200:
           description: tag Information
@@ -3034,7 +3034,7 @@ paths:
           required: true
           type: string
       tags:
-        - tag
+        - Tag
       responses:
         200:
           description: tag Information
@@ -3064,7 +3064,7 @@ paths:
           required: true
           type: string
       tags:
-        - tag
+        - Tag
       responses:
         200:
           description: Success
@@ -3093,7 +3093,7 @@ paths:
           required: false
           type: string
       tags:
-        - tag
+        - Tag
       responses:
         200:
           description: Success
@@ -3117,7 +3117,7 @@ paths:
           required: false
           type: string
       tags:
-        - tag
+        - Tag
       responses:
         200:
           description: Success
@@ -3146,7 +3146,7 @@ paths:
           required: false
           type: string
       tags:
-        - tag
+        - Tag
       responses:
         200:
           description: Success
@@ -3170,7 +3170,7 @@ paths:
           required: false
           type: string
       tags:
-        - tag
+        - Tag
       responses:
         200:
           description: Success
@@ -3199,7 +3199,7 @@ paths:
           required: false
           type: string
       tags:
-        - tag
+        - Tag
       responses:
         200:
           description: Success
@@ -3223,7 +3223,7 @@ paths:
           required: false
           type: string
       tags:
-        - tag
+        - Tag
       responses:
         200:
           description: Success
@@ -3252,7 +3252,7 @@ paths:
           required: false
           type: string
       tags:
-        - tag
+        - Tag
       responses:
         200:
           description: Success
@@ -3272,7 +3272,7 @@ paths:
           required: false
           type: string
       tags:
-        - task
+        - Task
       responses:
         200:
           description: task Information
@@ -3294,7 +3294,7 @@ paths:
           schema:
             $ref: '#/definitions/task'
       tags:
-        - task
+        - Task
       responses:
         200:
           description: task Information
@@ -3315,7 +3315,7 @@ paths:
           required: true
           type: string
       tags:
-        - task
+        - Task
       responses:
         200:
           description: task Information
@@ -3341,7 +3341,7 @@ paths:
           schema:
             $ref: '#/definitions/task'
       tags:
-        - task
+        - Task
       responses:
         200:
           description: task Information
@@ -3371,7 +3371,7 @@ paths:
           required: false
           type: string
       tags:
-        - task
+        - Task
       responses:
         200:
           description: Success
@@ -3385,7 +3385,7 @@ paths:
       description: Returns the users task labels.
       operationId: gettask
       tags:
-        - task
+        - Task
       responses:
         200:
           description: task information
@@ -3409,7 +3409,7 @@ paths:
           required: true
           type: string
       tags:
-        - task
+        - Task
       responses:
         200:
           description: task label id
@@ -3428,7 +3428,7 @@ paths:
           required: true
           type: string
       tags:
-        - task
+        - Task
       responses:
         200:
           description: task label Information
@@ -3454,7 +3454,7 @@ paths:
           schema:
             $ref: '#/definitions/task'
       tags:
-        - task
+        - Task
       responses:
         200:
           description: task label information
@@ -3474,7 +3474,7 @@ paths:
           required: true
           type: string
       tags:
-        - task
+        - Task
       responses:
         200:
           description: Success
@@ -3493,7 +3493,7 @@ paths:
           required: true
           type: string
       tags:
-        - task
+        - Task
       responses:
         200:
           description: Success
@@ -3512,7 +3512,7 @@ paths:
           required: true
           type: string
       tags:
-        - task
+        - Task
       responses:
         200:
           description: Success
@@ -3531,7 +3531,7 @@ paths:
           required: true
           type: string
       tags:
-        - task
+        - Task
       responses:
         200:
           description: task Information
@@ -3552,7 +3552,7 @@ paths:
           required: true
           type: string
       tags:
-        - task
+        - Task
       responses:
         200:
           description: task Information
@@ -3574,7 +3574,7 @@ paths:
           required: true
           type: string
       tags:
-        - task
+        - Task
       responses:
         200:
           description: task Information
