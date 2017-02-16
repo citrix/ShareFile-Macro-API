@@ -7,11 +7,13 @@ var fs = require('fs');
 var https = require('https');
 var os = require("os");
 var querystring = require("querystring");
+var dotenv = require('dotenv');
+dotenv.load();
 
 var this_host = os.hostname();
 console.log("Local hostname is " + this_host);
 console.log("System start at time: " + new Date().toJSON());
-var env_dir = '/home/azureuser/citrix/ShareFile-env/';
+var env_dir = process.env.ENV_DIR || '/home/azureuser/citrix/ShareFile-env/'
 
 var settings_path = env_dir + 'podio-settings.js';
 var settings;
@@ -44,7 +46,7 @@ var creds_path = '/home/azureuser/citrix/ShareFile-env/podio-creds.js'; // used 
 //   client_id: "xxxxxxxxxxxx",
 //   client_secret: "yyyyyyyyyyyy",
 //   redirect: "http://yourredirecturlhere.com"
-// }    
+// }
 var key_info = require('/home/azureuser/citrix/ShareFile-env/podio-keys.js');  // API keys and developer's info
 var key_context = key_info.key_context;
 var client_id = key_context.client_id;
@@ -82,18 +84,18 @@ if (fs.existsSync(redis_path)) {
 } else  //  try to connect to a local host
     var redclient = redis.createClient({port:5001});
 
-//var my_options = {  // options where security credentials will be set for downstream usage by specific API calls 
+//var my_options = {  // options where security credentials will be set for downstream usage by specific API calls
 //    hostname: 'zzzz.sf-api.com',
  //   port: '443',
   //  path: '',
   //  method: 'GET',
 //};
 
-var redirect = function(req, resp,  new_path) {  
+var redirect = function(req, resp,  new_path) {
 // Redirects to ShareFile security site for user login. The security server redirects the user back here where the URI contains the request code for ShareFile
     var my_query = '';
     var hashcode = generateCacheHash(req);
-  
+
     if (my_query)
 	my_query += '&';
     else
@@ -103,8 +105,8 @@ var redirect = function(req, resp,  new_path) {
 	my_query += '&';
     }
     if (hashcode)
-        my_query +='hashcode='+hashcode;	
-    var parameters = "https://podio.com/oauth/authorize?client_id="+client_id+"&redirect_uri="+redirect_url+":"+settings.port+new_path+my_query; 
+        my_query +='hashcode='+hashcode;
+    var parameters = "https://podio.com/oauth/authorize?client_id="+client_id+"&redirect_uri="+redirect_url+":"+settings.port+new_path+my_query;
     console.log ("<-C- Redirect to " + parameters);
     resp.redirect(parameters);
 };
@@ -125,10 +127,10 @@ var authenticate = function(req, callback) { // Once the request code comes back
     else {
 	console.log("authenticate_userpass: "+ JSON.stringify(req.query));
 	get_token_data = get_token_data_preamble_userpass + username + "&password=" + password + "&client_id=" + client_id + "&client_secret=" + client_secret;
-    }	
-     
+    }
+
     console.log("Sending token get request: " + get_token_data);
-    
+
     // ShareFile sends token data in the body, must set type and length
     get_token_options.headers = {
 	'Content-Type': 'application/x-www-form-urlencoded',
@@ -136,7 +138,7 @@ var authenticate = function(req, callback) { // Once the request code comes back
     }
     // console.log("Get token options: "+ JSON.stringify(get_token_options));
     console.log("<-S- " + JSON.stringify(get_token_options) + get_token_data);
-    
+
     var request = https.request(get_token_options, function(response) {
 	var resultString = '';
 	response.on('data', function (chunk) {
@@ -161,7 +163,7 @@ var set_security = function (request, response, my_options, new_path, callback) 
     // C) Second time through, a request code exists that can be exchanged for an access token.  This is provided in a query string and the subdomain is provided in another query string.  This is the third priority security cred.
     // D) Alternatively, there is an authorization header with the access bearer token, further host header contains the subdomain. This is the second priority credential (only used if D is not present).
     // E) Lastly, there is an SFAPI_AuthID and domain cookie which is used to avoid further auth/auth checks.  This is enconded in an inbound cookie called "Ado" with the form xxxxxx:zzz.sf-api.com where xxxxxx is the ShareFile cookie and zzz is the subdomain.  The presence of this cookie overrides any other security credential received.
-    
+
     var code = request.query.code;
     var token = '';
     var cookie = '';
@@ -169,23 +171,23 @@ var set_security = function (request, response, my_options, new_path, callback) 
     var password = request.query.password;
 
     if (fs.existsSync(creds_path)) {
-	var creds_info = require(creds_path);  
-	test_user = creds_info.creds_context.user; 
-	test_pw = creds_info.creds_context.pw; 
+	var creds_info = require(creds_path);
+	test_user = creds_info.creds_context.user;
+	test_pw = creds_info.creds_context.pw;
 	test_domain = creds_info.creds_context.domain;
     } else {
 	test_user = '';
 	test_pw = '';
 	test_domain = '';
     }
-    
+
     if (request.headers.cookie) {  // If there is a cookie, make sure it is valid
 	var temp_cookies = (request.headers.cookie).split("Pdo=");
 	if (temp_cookies.length == 2) {
 	    var val_cookie = (temp_cookies[1]).split(':');
 	    if (val_cookie.length == 2) {
 		var val2_cookie = (val_cookie[1]).split('.podio.com');
-		if (val2_cookie.length == 2) // string ends in '.sf-api.com' 
+		if (val2_cookie.length == 2) // string ends in '.sf-api.com'
 		    cookie = temp_cookies[1];
 	    }
 	}
@@ -211,14 +213,14 @@ var set_security = function (request, response, my_options, new_path, callback) 
 	    test_user = '';
 	}
     }
-	
+
     if (!code && !token && !cookie && !username && test_user) { // special case where nothing was passed but we have a local test_user creds, this is in the common case in prod; this results in a case B flow
 	request.query.username = username = test_user;
 	request.query.password = password = test_pw;
 	request.query.subdomain = test_domain;
-	console.log ("Overriding user/pw information with local: " + username + "/" + password); 
+	console.log ("Overriding user/pw information with local: " + username + "/" + password);
     }
-    
+
     if (!code && !token && !cookie && !username) { // case A
 	console.log("Case A: Initiating login sequence");
 	redirect (request, response, new_path);
@@ -233,7 +235,7 @@ var set_security = function (request, response, my_options, new_path, callback) 
 		'Host': subdomain,
 		'Cookie': 'PODIOAPI_AuthID='+cookie
 	    }
-	    my_options.hostname = subdomain;	    
+	    my_options.hostname = subdomain;
 	    callback (my_options, cookie);
 	}
 	else { // case B, C or D
@@ -292,7 +294,7 @@ function generateCacheHash(req){
     } else {
         var json_key = hashcode +'-json';
         var method_key = hashcode +'-method';
-        //preserve body information for after authentication                                                                                     
+        //preserve body information for after authentication
         redclient.set(method_key, req.method);
         redclient.set(json_key, JSON.stringify(req.body));
     }
