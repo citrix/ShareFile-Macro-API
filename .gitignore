@@ -1,1 +1,10 @@
 ./auth
+rs-settings.js
+rs-keys.js
+rs-creds.js
+
+sf-settings.js
+sf-keys.js
+sf-creds.js
+
+.env

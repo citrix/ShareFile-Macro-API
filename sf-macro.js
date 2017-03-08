@@ -3,24 +3,29 @@
 // Trace conventions:
 //  -X-> means a message was received from X where X={C,S,B} representing {client, security server, back-end server} respectively
 
-var fs = require('fs');
 var express = require('express');
+var app = express();
 var https = require('https');
 var querystring = require('querystring');
-var app = express();
+var fs = require('fs');
+var bodyParser = require('body-parser');
+var crypto = require("crypto");
+var redis = require("redis");
+var beautify = require("js-beautify").js_beautify;
+var moment = require("moment");
+var dotenv = require('dotenv');
+dotenv.load();
+
 var files_client = require("./endpoints/sf-files");
 var users_client = require("./endpoints/sf-users");
 var groups_client = require("./endpoints/sf-groups");
 var stream_client = require("./endpoints/sf-streams");
 var object_client = require("./endpoints/sf-objects");
 var sfauth = require("./sf-authenticate");
-var podioauth = require("./podio-authenticate");
-var bodyParser = require('body-parser');
-var crypto = require("crypto");
-var redis = require("redis");
-var beautify = require("js-beautify").js_beautify;
+// var podioauth = require("./podio-authenticate");
+let rightSignatureAuth = require("./rightsignature-authenticate");
 
-var env_dir = '/home/azureuser/citrix/ShareFile-env/'
+var env_dir = process.env.ENV_DIR || '/home/azureuser/citrix/ShareFile-env/'
 
 var settings_path = env_dir + 'sf-settings.js';
 var settings;
@@ -39,10 +44,9 @@ if (fs.existsSync(redis_path)) {
     var redis_info = require(redis_path);
     console.log ("Using this Redis server: " + JSON.stringify(redis_info));
     var redclient = redis.createClient(redis_info.redis_host);
-} else  //  try to connect to a local host
+} else  {//  try to connect to a local host
     var redclient = redis.createClient({port:5001});
-
-app.use(express.static(__dirname + '/public'));
+}
 
 var my_options = {  // request options
     hostname: 'zzzz.sf-api.com',
@@ -51,95 +55,75 @@ var my_options = {  // request options
     method: 'GET',
 };
 
+app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 function getDateTime() {
-    var date = new Date();
-
-    var hour = date.getHours();
-    hour = (hour < 10 ? "0" : "") + hour;
-
-    var min  = date.getMinutes();
-    min = (min < 10 ? "0" : "") + min;
-
-    var sec  = date.getSeconds();
-    sec = (sec < 10 ? "0" : "") + sec;
-
-    var year = date.getFullYear();
-
-    var month = date.getMonth() + 1;
-    month = (month < 10 ? "0" : "") + month;
-
-    var day  = date.getDate();
-    day = (day < 10 ? "0" : "") + day;
-
-    return year + ":" + month + ":" + day + ":" + hour + ":" + min + ":" + sec;
+  // 2017-02-16T18:16:01-08:00
+  return moment().format();
 }
 
 function generateFileHash(req){
-    var current_date = (new Date()).valueOf().toString();
-    var random = Math.random().toString();
-    var hashcode = crypto.createHash('sha1').update(current_date + random).digest('hex');
-    if (req.query.hashcode){
-        console.log(hashcode);
-        hashcode = req.query.hashcode;
-    } else {
-        var json_key = hashcode +'-json';
-        var method_key = hashcode +'-method';
-        //preserve body information for after authentication                                                                             
-	redclient.set(method_key, req.method);
-        redclient.set(json_key, JSON.stringify(req.body));
-    }
-
-    return hashcode;
+  var current_date = (new Date()).valueOf().toString();
+  var random = Math.random().toString();
+  var hashcode = crypto.createHash('sha1').update(current_date + random).digest('hex');
+  if (req.query.hashcode){
+    console.log(hashcode);
+    hashcode = req.query.hashcode;
+  } else {
+    var json_key = hashcode +'-json';
+    var method_key = hashcode +'-method';
+    //preserve body information for after authentication
+	  redclient.set(method_key, req.method);
+    redclient.set(json_key, JSON.stringify(req.body));
+  }
+  return hashcode;
 }
 
 function retrieveMethod(req) {
-    if (req.query.hashcode){
-	hashcode = req.query.hashcode;
-        var method_key = hashcode +'-method';
-	redclient.get(method_key, function(err, method_info) {
-            return method_info.toString();
-	});
-    } else {
-	return req.method;
-    }
+  if (req.query.hashcode){
+	   hashcode = req.query.hashcode;
+     var method_key = hashcode +'-method';
+	   redclient.get(method_key, function(err, method_info) {
+       return method_info.toString();
+	   });
+  } else {
+    return req.method;
+  }
 }
 
 function retrieveBody(req) {
-    if (req.query.hashcode){
-        hashcode = req.query.hashcode;
-	var json_key = hashcode +'-json';
-	redclient.get(json_key, function(err, json_info) {
+  if (req.query.hashcode) {
+    hashcode = req.query.hashcode;
+	  var json_key = hashcode +'-json';
+	  redclient.get(json_key, function(err, json_info) {
 	    return json_info.toString();
-	});
-    } else {
-	return JSON.stringify(req.body);
-    }
+	  });
+  } else {
+    return JSON.stringify(req.body);
+  }
 }
 
 function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
+  return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-
 function buildNewPath(request_path) {
-    var new_path = '';
+  var new_path = '';
+  var middle = querystring.unescape(request_path);
+  var file_array = middle.split("/");
 
-    var middle = querystring.unescape(request_path);
-    var file_array = middle.split("/");
-    
-    for (var i=1; i< file_array.length; i++) {
-	// console.log ("Processing element "+i+ ":" + file_array[i]);
-	var replace_val = querystring.escape(querystring.unescape(file_array[i]));
-	if (file_array[i] != replace_val) {
-	    // console.log ("Replacing " + file_array[i] + " with " + replace_val);
-	    file_array[i] = replace_val;
-	}
-	new_path = new_path + '/'+file_array[i];
-    }
-    return new_path;
+  for (var i=1; i< file_array.length; i++) {
+  	// console.log ("Processing element "+i+ ":" + file_array[i]);
+  	var replace_val = querystring.escape(querystring.unescape(file_array[i]));
+  	if (file_array[i] != replace_val) {
+  	  // console.log ("Replacing " + file_array[i] + " with " + replace_val);
+  	  file_array[i] = replace_val;
+  	}
+  	new_path = new_path + '/'+file_array[i];
+  }
+  return new_path;
 }
 
 app.options('*', function(request, response) {
@@ -167,8 +151,8 @@ app.all('/files*', function(request, response) {
     console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
     request.path = new_path;
     var file_array = new_path.split("/");
-    
-    // Note: the first element in the array should be '' since the string starts with a '/'        
+
+    // Note: the first element in the array should be '' since the string starts with a '/'
     if (file_array[1].toLowerCase() != 'files') {  // error, some funky request came in
         console.log("<-C- File not found: " + request.path);
         response.status(404);
@@ -186,256 +170,165 @@ app.all('/files*', function(request, response) {
     });
 });
 
-
-
 app.all('/podio*', function(request, response){
-
-    podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/action*', function(request, response){
-
-    podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/alert*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
-
 app.all('/app_store*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/app*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/batch*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/calendar*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/conversation*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/comment*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/contact*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/mobile*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
-
 
 app.all('/email*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
-
 app.all('/embed*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/flow*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/form*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/friend*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/grant*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/hook*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/importer*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/integration*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/layout*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/linked_account*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
-
 app.all('/notification*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/org*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/question*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/rating*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/recurrence*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/reference*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/reminder*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
-
 
 app.all('/search*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
-
 app.all('/space*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/status*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/stream*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
-
 
 app.all('/subscription*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
-
 app.all('/tag*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/task*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/view*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/voting*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/widget*', function(request, response){
-
-podio_proxy(request, response);
-
+  podio_proxy(request, response);
 });
 
 app.all('/object*', function(request, response){
-
-podio_forwarder(request, response, "object", "item");
-
+  podio_forwarder(request, response, "object", "item");
 });
-
 
 
 function podio_proxy(request, response) {
@@ -645,7 +538,7 @@ app.all('/*/:id/:subnav/:subid', function(req, res) {
 	var subnav_id = req.params.subnav_id
         var req_array = req.path.split("/");
         var sub_nav = "";
-     
+
         set_options.method = retrieveMethod(req);
         var body = retrieveBody(req);
 
@@ -657,7 +550,7 @@ app.all('/*/:id/:subnav/:subid', function(req, res) {
         console.log("ID: " + id);
         console.log(url_path);
         set_options.path = url_path
-       //set_options.hostname = set_options.headers.Host;                                                                                    
+       //set_options.hostname = set_options.headers.Host;
         console.log("<-B-: " + JSON.stringify(set_options));
 
         var api_request = https.request(set_options, function(api_response) {
@@ -698,7 +591,7 @@ app.all('/*/:id', function(req, res) {
         }
         set_options.method = retrieveMethod(req);
         var body = retrieveBody(req);
-       
+
         if (body) {
             set_options.headers['Content-Length'] = Buffer.byteLength(body);
         }
@@ -707,9 +600,9 @@ app.all('/*/:id', function(req, res) {
         console.log("ID: " + id);
 	console.log(url_path);
         set_options.path = url_path
-       //set_options.hostname = set_options.headers.Host;                                                                                
+       //set_options.hostname = set_options.headers.Host;
         console.log("<-B-: " + JSON.stringify(set_options));
-       
+
         var api_request = https.request(set_options, function(api_response) {
 	    var resultString = "";
 	    console.log(api_response.statusCode);
@@ -725,7 +618,7 @@ app.all('/*/:id', function(req, res) {
                 res.setHeader('content-type', 'application/json');
                 res.send(beautify(resultString));
                 res.end();
-            });       
+            });
         });
         if (body) {
             api_request.write(body);
@@ -780,8 +673,8 @@ app.get('/allusers', function(request, response) {
     console.log ("-C-> GET "+request.path);
     var user_array = request.path.split("/");
 
-    // Note: the first element in the array should be '' since the string starts with a '/'  
-    if (user_array[1] != 'allusers') {  // error, some funky request came in     
+    // Note: the first element in the array should be '' since the string starts with a '/'
+    if (user_array[1] != 'allusers') {  // error, some funky request came in
         console.log("<-C- Users not found: " + request.path);
         response.status(404);
         response.send('Not Found: ' + request.path);
@@ -792,22 +685,23 @@ app.get('/allusers', function(request, response) {
 	sfauth.set_security (request, response, my_options, request.path, function(set_options, cookie) {
             users_client.get_user_list (user_type, request, response, set_options, cookie);
 	});
-   
+
 });
 
-/* used for dev environments that are not https
+//used for dev environments that are not https
+if (process.env.ENV === 'development') {
+  app.listen(app.get('port'), function() {
+      console.log("Node app is running at localhost:" + app.get('port'));
+  });
+}
 
-app.listen(app.get('port'), function() {
-    console.log("Node app is running at localhost:" + app.get('port'));
-});
-*/
-
-var secureServer = https.createServer({
-    key: fs.readFileSync(env_dir + 'cloud.key'),
-    cert: fs.readFileSync(env_dir + 'cloud.crt'),
-    ca: fs.readFileSync(env_dir + 'ca.crt'),
-    requestCert: true,
-    rejectUnauthorized: false}, app).listen(app.get('port'), function() {
-	console.log("Node app is running at localhost:" + app.get('port'));
+if (!process.env.ENV === 'development') {
+  var secureServer = https.createServer({
+      key: fs.readFileSync(env_dir + 'cloud.key'),
+      cert: fs.readFileSync(env_dir + 'cloud.crt'),
+      ca: fs.readFileSync(env_dir + 'ca.crt'),
+      requestCert: true,
+      rejectUnauthorized: false}, app).listen(app.get('port'), function() {
+  	console.log("Node app is running at localhost:" + app.get('port'));
     });
-
+}

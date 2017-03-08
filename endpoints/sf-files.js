@@ -4,8 +4,10 @@ var url = require('url');
 var fs = require('fs');
 var querystring = require("querystring");
 var beautify = require("js-beautify").js_beautify;
-var sfauth = require("../sf-authenticate");
+var dotenv = require('dotenv');
+dotenv.load();
 
+var sfauth = require("../sf-authenticate");
 var itempath_home = '/sf/v3/Items(home)';
 var itempath_byID = '/sf/v3/Items(';
 var itempath_byPath = '/sf/v3/Items/ByPath?path=';
@@ -14,7 +16,7 @@ var folderpath_tail = '/Children?includeDeleted=false'  // include all children 
 var downloadpath_tail =')/Download?includeallversions=false';
 var delete_tail=')?singleversion=false&forceSync=false';
 
-var env_dir = '/home/azureuser/citrix/ShareFile-env/'
+var env_dir = process.env.ENV_DIR || '/home/azureuser/citrix/ShareFile-env/'
 
 var settings_path = env_dir + 'sf-settings.js';
 var settings;
@@ -60,14 +62,14 @@ var delete_file = function(file_array, new_path, request, response, my_options, 
     // 2) Deletes the file by ID
 
     // console.log("get_file array size: "+file_array.length);
-    
+
     var item_options = my_options;
     item_options.method = 'GET';
     var possible_fileId = false;
-    
+
     if (file_array[file_array.length-1] == '') // the URL ends in a '/'
 	file_array.length--; // just ignore the last one
-    
+
     if (file_array.length==2) { // special case to handle the home directory
 	var err_msg = 'Cannot delete the home directory';
 	send_message(response, 500, err_msg);
@@ -84,10 +86,10 @@ var delete_file = function(file_array, new_path, request, response, my_options, 
 	item_options.path = itempath_byPath + trunc_path;
     }
     console.log("<-B-: " + JSON.stringify(item_options));
-    
+
     var item_request = https.request(item_options, function(item_response) {
 	console.log("-B->: [" + item_response.statusCode + "] : [" + JSON.stringify(item_response.headers) + "]");
-	
+
 	var try_fileId = '';
 	if (possible_fileId && item_response.statusCode == 404) { // this might be a file ID, try pulling it
 	    try_fileId = file_array[2];
@@ -103,11 +105,11 @@ var delete_file = function(file_array, new_path, request, response, my_options, 
 	    send_message(response, item_response.statusCode, err_msg);
 	    return;  // we are done
 	}
-	
+
 	if (!cookie) { // need to snag cookie from response and propagate back to client
 	    sfauth.set_cookie(response, item_response.headers['set-cookie'][0]);
 	}
-	
+
 	var item_contents = [];
 
 	item_response.on('data', function (chunk) {
@@ -117,9 +119,9 @@ var delete_file = function(file_array, new_path, request, response, my_options, 
 	item_response.on('end', function (chunk) {
 	    var item_buffer = Buffer.concat(item_contents);
 	    console.log("Response from item complete: " +item_buffer);
-	    
+
 	    var item_id;
-	    
+
 	    if (try_fileId)
 		item_id = try_fileId;
 	    else {
@@ -134,7 +136,7 @@ var delete_file = function(file_array, new_path, request, response, my_options, 
 	    if (item_id.indexOf('fo')==0) {   // it's a folder, abort
 		var err_msg = 'Cannot delete folder';
 		send_message(response, 500, err_msg);
-		return;  // we are done                                   
+		return;  // we are done
 	    }
 	    else // it's a file
 		delete_options.path = itempath_byID + item_id + delete_tail;
@@ -185,14 +187,14 @@ var get_file = function(file_array, new_path, request, response, my_options, coo
 	MetadataExplicit = true;
 	MetadataRequest = false;
     }
-    
+
     var item_options = my_options;
     item_options.method = 'GET';
     var possible_fileId = false;
-    
+
     if (file_array[file_array.length-1] == '') // the URL ends in a '/'
 	file_array.length--; // just ignore the last one
-    
+
     if (file_array.length==2) { // special case to handle the home directory
 	item_options.path = itempath_home;
 	console.log("Accessing home directory");
@@ -231,7 +233,7 @@ var get_file = function(file_array, new_path, request, response, my_options, coo
 	if (!cookie) { // need to snag cookie from response and propagate back to client
 	    sfauth.set_cookie(response, item_response.headers['set-cookie'][0]);
 	}
-	
+
 	var item_contents = [];
 	item_response.on('data', function (chunk) {
 	    item_contents.push(chunk);
@@ -242,7 +244,7 @@ var get_file = function(file_array, new_path, request, response, my_options, coo
 	    console.log("Response from item complete: " +item_buffer);
 
 	    var item_id;
-	    
+
 	    if (try_fileId)
 		item_id = try_fileId;
 	    else {
@@ -261,10 +263,10 @@ var get_file = function(file_array, new_path, request, response, my_options, coo
 	    } else { // Nothing was specified
 		if (item_id.indexOf('fo')==0)  // it's a folder
 		    ReturnMetadata = true;
-		else 
+		else
 		    ReturnMetadata = false;
 	    }
-	    
+
 	    if (ReturnMetadata) {  // Metadata will be returned
 		console.log ("Returning metadata");
 
@@ -275,7 +277,7 @@ var get_file = function(file_array, new_path, request, response, my_options, coo
 		    list_options.path =  itempath_byID + item_id + ")" + folderpath_tail;
 		else // it's a file
 		    list_options.path = itempath_byID + item_id + ")";
-		
+
 		console.log("<-B-: " + JSON.stringify(list_options));
 		var list_request = https.request(list_options, function(list_response) {
 		    console.log("-B->: [" + list_response.statusCode + "] : [" + JSON.stringify(list_response.headers) + "]");
@@ -284,7 +286,7 @@ var get_file = function(file_array, new_path, request, response, my_options, coo
 			send_message(response, list_response.statusCode, err_msg);
 			return;  // we are done
 		    }
-		    
+
 		    var resultString = '';
 		    list_response.on('data', function (chunk) {
 			resultString+=chunk;
@@ -305,7 +307,7 @@ var get_file = function(file_array, new_path, request, response, my_options, coo
 		    });
 		});
 		list_request.end();
-	    }		    
+	    }
 	    else { // Will return contents
 		console.log ("Returning actual data");
 		var dl_options = my_options;
@@ -319,7 +321,7 @@ var get_file = function(file_array, new_path, request, response, my_options, coo
 			send_message(response, dl_response.statusCode, err_msg);
 			return;  // we are done
 		    }
-			
+
 		    var myurl = url.parse(dl_response.headers.location);
 		    file_options.hostname = myurl.hostname;
 		    file_options.path = myurl.path;
@@ -329,7 +331,7 @@ var get_file = function(file_array, new_path, request, response, my_options, coo
 			response.setHeader('content-type', file_response.headers['content-type']);
 			response.setHeader('content-disposition', file_response.headers['content-disposition']);
 			response.setHeader('Transfer-Encoding', 'chunked');
-			
+
 			// var file_contents = [];
 			file_response.on('data', function (chunk) {
 			    // file_contents.push(chunk);
@@ -381,7 +383,7 @@ var send_file = function(file_array, file, my_options, item_id) {
 		'Content-Type': 'text/plain',    // It's plain-text
 		'Content-Length': file.length
 	    }
-	    
+
 	    console.log("<-B-: " + JSON.stringify(sendfile_options));
 	    var sf_request = https.request(sendfile_options, function(sf_response) {
 		console.log("-B->: [" + sf_response.statusCode + "] : [" + JSON.stringify(sf_response.headers) + "]");
@@ -415,20 +417,20 @@ var post_file = function(file_array, new_path, request, response, my_options, co
 
     var possible_fileId = false;
     var remote_url = request.query.url;
-    
+
     if (file_array.length==4) { // might be a file identifier, check
 	console.log("Is this a file id? "+file_array[2]);
 	if((file_array[2].split("-")).length==5 && file_array[2].length==36) // yes, the format looks like a possible file id
 	    possible_fileId = true;
     }
-    
+
     if (file_array.length < 4) { // file has to have a name, the first element is empty, the second is 'files', and the third must be a high level folder like 'My Files & Folders'
 	response.status(404);
 	var err_msg = "Invalid file path.";
 	send_message(response, 404, err_msg, request.path);
 	return;  // we are done
     }
-    
+
     var parent_path = '';
     for (i=1; i<file_array.length-1; i++) {
 	parent_path = parent_path + "/" + file_array[i];
@@ -438,7 +440,7 @@ var post_file = function(file_array, new_path, request, response, my_options, co
     item_options.path = itempath_byPath + trunc_path;
     item_options.method = 'GET';
     console.log("<-B-: " + JSON.stringify(item_options));
-    
+
     var item_request = https.request(item_options, function(item_response) {
 	console.log("-B->: [" + item_response.statusCode + "] : [" + JSON.stringify(item_response.headers) + "]");
 	var try_fileId = '';
@@ -447,7 +449,7 @@ var post_file = function(file_array, new_path, request, response, my_options, co
 	} else if (item_response.statusCode != 200) {
 	    var err_msg = 'Unrecognized internal error';
 	    if (item_response.statusCode == 401) {
-		if (request.headers.cookie) // a cookie was passed in 
+		if (request.headers.cookie) // a cookie was passed in
 		    sfauth.clear_cookie(response);
 		err_msg = 'Unauthorized access';
 	    } else if (item_response.statusCode == 404) {
@@ -460,7 +462,7 @@ var post_file = function(file_array, new_path, request, response, my_options, co
 	if (!cookie) { // need to snag cookie from response and propagate back to client
 	    sfauth.set_cookie(response, item_response.headers['set-cookie'][0]);
 	}
-	
+
 	var resultString = '';
 	item_response.on('data', function (chunk) {
 	    resultString+=chunk;
@@ -476,10 +478,10 @@ var post_file = function(file_array, new_path, request, response, my_options, co
 		item_id = item_result.Id;
 	    }
 	    console.log("Item id is " + item_id);
-	    
+
 	    if (item_id.indexOf('fo')==0) { // this is a folder, we can just upload here
 		console.log ("Found folder, uploading file");
-		
+
 		var file = '';
 		request.on('data', function (data) {
 		    file += data;
@@ -512,7 +514,7 @@ var post_file = function(file_array, new_path, request, response, my_options, co
 				file = buffer;
 				if (file.length < 50) // only record it in the log if it is small
 				    console.log ("Received this remote file contents: "+file);
-				
+
 				send_file(file_array, file, my_options, item_id); // send it!
 				send_message(response, 200, "Got it!");
 			    });
@@ -523,7 +525,7 @@ var post_file = function(file_array, new_path, request, response, my_options, co
 			    console.log ("Received this message from client: "+file);
 			else
 			    console.log ("Received a file to upload but it was too long to show you");
-			
+
 			send_file(file_array, file, my_options, item_id); // send it!
 			send_message(response, 200, "Got it!");
 		    }

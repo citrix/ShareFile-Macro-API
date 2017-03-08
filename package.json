@@ -1,0 +1,23 @@
+{
+  "name": "ShareFile-Macro-API",
+  "version": "1.0.0",
+  "main": "sf-macro.js",
+  "repository": "git@github.com:rsig/ShareFile-Macro-API.git",
+  "author": "Geoff Ereth <geoff@little.fm>",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.16.1",
+    "dotenv": "^4.0.0",
+    "dotfile": "^0.0.2",
+    "express": "^4.14.1",
+    "js-beautify": "^1.6.9",
+    "moment": "^2.17.1",
+    "redis": "^2.6.5"
+  },
+  "scripts": {
+    "start": "node sf-macro.js"
+  },
+  "devDependencies": {
+    "eslint": "^3.15.0"
+  }
+}
