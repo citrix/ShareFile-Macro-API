@@ -54,7 +54,7 @@ var send_message = function(response, status, message, fields, skipWrap) {
     response.end();
 }
 
-var delete_file = function(file_array, new_path, request, response, my_options, cookie) {
+var delete_file = function(file_array, new_path, request, response, my_options, cookie, token) {
     // This function does the following things:
     // 1) Finds the Item by path
     // 2) Deletes the file by ID
@@ -105,7 +105,7 @@ var delete_file = function(file_array, new_path, request, response, my_options, 
 	}
 	
 	if (!cookie) { // need to snag cookie from response and propagate back to client
-	    sfauth.set_cookie(response, item_response.headers['set-cookie'][0]);
+	    sfauth.set_cookie(response, item_response.headers['set-cookie'][0], token);
 	}
 	
 	var item_contents = [];
@@ -164,7 +164,7 @@ var delete_file = function(file_array, new_path, request, response, my_options, 
 }
 
 
-var get_file = function(file_array, new_path, request, response, my_options, cookie) {
+var get_file = function(file_array, new_path, request, response, my_options, cookie, token) {
     // This function does the following things:
     // 1) Finds the Item by path
     // 2) Prepares the file for download
@@ -229,7 +229,7 @@ var get_file = function(file_array, new_path, request, response, my_options, coo
 	}
 
 	if (!cookie) { // need to snag cookie from response and propagate back to client
-	    sfauth.set_cookie(response, item_response.headers['set-cookie'][0]);
+	    sfauth.set_cookie(response, item_response.headers['set-cookie'][0], token);
 	}
 	
 	var item_contents = [];
@@ -402,7 +402,7 @@ var send_file = function(file_array, file, my_options, item_id) {
     ul_request.end();
 }
 
-var post_file = function(file_array, new_path, request, response, my_options, cookie) {
+var post_file = function(file_array, new_path, request, response, my_options, cookie, token) {
     // This function does the following things:
     // 1) Finds the parent directory by path
     // 2) Prepares the file for upload into that parent directory
@@ -458,7 +458,7 @@ var post_file = function(file_array, new_path, request, response, my_options, co
 	}
 
 	if (!cookie) { // need to snag cookie from response and propagate back to client
-	    sfauth.set_cookie(response, item_response.headers['set-cookie'][0]);
+	    sfauth.set_cookie(response, item_response.headers['set-cookie'][0], token);
 	}
 	
 	var resultString = '';

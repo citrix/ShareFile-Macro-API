@@ -2,15 +2,17 @@
 // Adolfo Rodriguez, Keith Lindsay
 // Trace conventions:
 //  -X-> means a message was received from X where X={C,S,B} representing {client, security server, back-end server} respectively
+//  <-X- means a message was sent to X where X={C,S,B} representing {client, security server, back-end server} respectively
 
 var fs = require('fs');
 var https = require('https');
 var os = require("os");
 var querystring = require("querystring");
+var podioauth = require("./podio-common-authenticate");
 
 var this_host = os.hostname();
 console.log("Local hostname is " + this_host);
-console.log("System start at time: " + new Date().toJSON());
+console.log("sf.authenticate.js start time: " + new Date().toJSON());
 var env_dir = '/home/azureuser/citrix/ShareFile-env/';
 
 var settings_path = env_dir + 'sf-settings.js';
@@ -40,7 +42,8 @@ var creds_path = env_dir + 'sf-creds.js'; // used only for testing (and default 
 //   client_id: "xxxxxxxxxxxx",
 //   client_secret: "yyyyyyyyyyyy",
 //   redirect: "http://yourredirecturlhere.com"
-// }    
+// }
+
 var key_info = require(env_dir + 'sf-keys.js');  // API keys and developer's info
 var key_context = key_info.key_context;
 var client_id = key_context.client_id;
@@ -67,6 +70,22 @@ var get_token_options = {
     }
 };
 
+var get_RS_token_options = {
+    hostname: 'secure.sharefile.com',
+    port: '443',
+    // the following ClientID is the production RightSignature ShareFile API (RS uses to access SF)
+    path: '/sf/v3/Integrations/Jwt?targetClientId=hHemsAdC6Jg7hwKVQU9NBf1D1JBLZ6LM',
+    method: 'POST'
+};
+
+var get_Podio_token_options = {
+    hostname: 'secure.sharefile.com',
+    port: '443',
+    // the following ClientID is the production RightSignature ShareFile API (RS uses to access SF)
+    path: '/sf/v3/Integrations/Code?targetClientId=xjZ93gVlcCna8B7aU7vBZcBt7DHHPhyH',
+    method: 'POST'
+};
+
 //setup cache connection
 var crypto = require("crypto");
 var redis = require("redis");
@@ -78,12 +97,12 @@ if (fs.existsSync(redis_path)) {
 } else  //  try to connect to a local host
     var redclient = redis.createClient({port:5001});
 
-//var my_options = {  // options where security credentials will be set for downstream usage by specific API calls 
-//    hostname: 'zzzz.sf-api.com',
- //   port: '443',
-  //  path: '',
-  //  method: 'GET',
-//};
+if (!String.prototype.startsWith) {
+    String.prototype.startsWith = function(searchString, position){
+	position = position || 0;
+	return this.substr(position, searchString.length) === searchString;
+    };
+}
 
 var redirect = function(req, resp,  new_path) {  
 // Redirects to ShareFile security site for user login. The security server redirects the user back here where the URI contains the request code for ShareFile
@@ -105,7 +124,7 @@ var redirect = function(req, resp,  new_path) {
     resp.redirect(parameters);
 };
 
-var authenticate = function(req, callback) { // Once the request code comes back in or we have a user/pass, this function will invoke the security server again to retrieve the access token
+var authenticate = function(req, callback) { // Once the request code comes back in or we have a user/pass, this function will invoke the security server again to retrieve the SF access token
     var code = req.query.code;
     var username = req.query.username;
     var password = req.query.password;
@@ -130,7 +149,7 @@ var authenticate = function(req, callback) { // Once the request code comes back
 	'Content-Type': 'application/x-www-form-urlencoded',
 	'Content-Length': get_token_data.length
     }
-    // console.log("Get token options: "+ JSON.stringify(get_token_options));
+
     console.log("<-S- " + JSON.stringify(get_token_options) + get_token_data);
     
     var request = https.request(get_token_options, function(response) {
@@ -144,25 +163,217 @@ var authenticate = function(req, callback) { // Once the request code comes back
 	});
     });
 
-    // Write the token data in the body
+    // Write the token data in the body of the request
     request.write(get_token_data);
     request.end();
 };
 
+var RS_get_token = function(token, subdomain, exchange_options, req, callback) { // Once the request code comes back in or we have a user/pass, this function will invoke the security server again to retrieve the RS JWT token
+
+    console.log("Checking redis for token: "+token);
+    // see if we have this token cached already
+    redclient.get(token+"-RS", function(err, RS_token) {
+	if (!RS_token) { // we don't have an associated token already
+	    console.log("Converting SF token " + token + " to RS token");
+	    get_RS_token_options.headers = {  // same for all invocations
+		'Host': subdomain + '.sharefile.com',
+		'Authorization': 'Bearer '+token,
+		'Content-Type' : 'application/json'
+	    }
+	    get_RS_token_options.hostname = subdomain + '.sharefile.com';
+	    console.log("<-S- " + JSON.stringify(get_RS_token_options));
+    
+	    var request = https.request(get_RS_token_options, function(response) {
+		var resultString = '';
+		response.on('data', function (chunk) {
+		    resultString+=chunk;
+		});
+		response.on('end', function (chunk) {
+		    console.log("-S-> ["+response.statusCode+"] RS auth result: " + resultString);
+		    var RS_token = JSON.parse(resultString).Token;
+		    redclient.set(token+"-RS", RS_token);   // remember the association between this SF
+		    // token and this RS token
+		    console.log("Associating this RS token: "+ RS_token + " with this SF token: " +token);
+		    callback(RS_token);
+		});
+	    });
+	    request.end();
+	}	       
+	else { // we have a cached RS token
+	    console.log("Found this RS token: "+ RS_token + " for this SF token: " +token);
+	    callback(RS_token);
+	}
+    });
+}
+
+var Podio_get_token = function(token, subdomain, exchange_options, req, callback) { // Once the request code comes back in or we have a user/pass, this function will invoke the security server again to retrieve the Podio code
+
+    console.log("Checking redis for token: "+token);
+    // see if we have this token cached already
+    redclient.get(token+"-Podio", function(err, Podio_token) {
+	if (!Podio_token) { // we don't have an associated token already
+	    console.log("Converting SF token " + token + " to Podio token");
+	    get_Podio_token_options.headers = {  // same for all invocations
+		'Host': subdomain + '.sharefile.com',
+		'Authorization': 'Bearer '+token,
+		'Content-Type' : 'application/json'
+	    }
+	    get_Podio_token_options.hostname = subdomain + '.sharefile.com';
+	    console.log("<-S- " + JSON.stringify(get_Podio_token_options));
+    
+	    var request = https.request(get_Podio_token_options, function(response) {
+		var resultString = '';
+		response.on('data', function (chunk) {
+		    resultString+=chunk;
+		});
+		response.on('end', function (chunk) {
+		    console.log("-S-> ["+response.statusCode+"] RS auth result: " + resultString);
+		    var Podio_code = JSON.parse(resultString).Code;
+		    var Apicp = JSON.parse(resultString).ApiCp;
+		    var Appcp = JSON.parse(resultString).AppCp;
+		    
+		    podioauth.podio_common_authenticate(Podio_code, subdomain, Apicp, Appcp, function(result) {
+			var Podio_token = JSON.parse(result).access_token;
+			console.log("Received Podio token via auth flow: "+token);
+
+			// remember the association between this SF token and Podio RS token
+			redclient.set(token+"-Podio", Podio_token);   
+			console.log("Associating this Podio token: "+ Podio_token + " with this SF token: " +token);
+			callback(Podio_token);
+		    });
+		});
+	    });
+	    request.end();
+	}	       
+	else { // we have a cached Podio token
+	    console.log("Found this Podio token: "+ Podio_token + " for this SF token: " +token);
+	    callback(Podio_token);
+	}
+    });
+}
+
+var get_and_cache_tokens = function (req_type, token, subdomain, request, my_options, cookie, callback) {
+    console.log("Getting RS token if needed, domain "+subdomain);
+    RS_get_token (token, subdomain, my_options, request, function(RS_token) {
+	console.log("Getting Podio token if needed, domain "+subdomain);
+	Podio_get_token (token, subdomain, my_options, request, function(Podio_token) {
+	    if (req_type == 'ShareFile') { // this is ShareFile
+		my_options.headers = {  // same for all invocations
+		    'Host': subdomain + '.sharefile.com',
+		    'Authorization': 'Bearer '+token,
+		    'Content-Type' : 'application/json'
+		}
+		my_options.hostname = subdomain + '.sharefile.com';
+	    }
+	    else if (req_type == 'RightSignature') { // this is RightSignature
+		my_options.headers = {  // same for all invocations
+		    'Host': 'api.rightsignature.com',
+		    'Authorization': 'Bearer '+ RS_token,
+		    'Content-Type' : 'application/json'
+		}
+		my_options.hostname = 'api.rightsignature.com';
+	    }
+	    else { // it's Podio
+		my_options.headers = {  // same for all invocations
+		    'Host': 'api.podio.com',
+		    'Authorization': 'OAuth2 '+Podio_token,
+		    'Content-Type' : 'application/json'
+		}
+		my_options.hostname = 'api.podio.com';		
+	    }
+	    
+	    callback (my_options, cookie);
+	});
+    });	
+}
+
 var set_security = function (request, response, my_options, new_path, callback) {
     // TODO: Deal with token and cookie expirations
-    // There are several cases to consider:
-    // A) First time through, there is no access code, authorization token, cookie or  username/passsword to identify the user
-    // B) First time through and we have no other security cred except username and password, we can use that to get a token. This requires having the subdomain in another query string.  This is the fourth priority security cred.
-    // C) Second time through, a request code exists that can be exchanged for an access token.  This is provided in a query string and the subdomain is provided in another query string.  This is the third priority security cred.
-    // D) Alternatively, there is an authorization header with the access bearer token, further host header contains the subdomain. This is the second priority credential (only used if D is not present).
-    // E) Lastly, there is an SFAPI_AuthID and domain cookie which is used to avoid further auth/auth checks.  This is enconded in an inbound cookie called "Services" with the form xxxxxx:zzz.sf-api.com where xxxxxx is the ShareFile cookie and zzz is the subdomain.  The presence of this cookie overrides any other security credential received.
+
+    // There are several cases to consider (in priority order):
+    // S1) Cookie: There is a "Services" cloud.com cookie containing the form
+    //    xxxxxx:zzz.sharefile.com:tttttt where xxxxxx is the ShareFile cookie,
+    //    zzz is the subdomain, and tttttt is the SF token, which can be used to look
+    //    up the RightSig and Podio tokens.  Once attained these are cached in Redis.
+    // S2) There is an authorization header with the SF access bearer token, further
+    //    the host header contains the subdomain. The SF token can be used to create
+    //    RightSig or Podio tokens, which are cached.
+    // S3) Request code: a request code exists in a query parameter that can be exchanged
+    //    for a SF access token. The subdomain is provided in another query string.
+    //    Once we have the SF token, we can exchange for RightSig or Podio tokens, which
+    //    are cached.
+    // S4) User/pass:  We have only username and password credentials in query strings which
+    //    can be used to get a SF token. This also requires having the subdomain in another
+    //    query string. Once we have the SF token, We exchange that for RightSig and
+    //    Podio tokens, which are cached.
+    // S5) Nothing: There is no access code, authorization token, cookie or
+    //    username/passsword to identify the user, in this case we redirect to the webpop.
+    // -------------
+    // In general, we are getting RightSig and Podio tokens any time we get a SF token.  This
+    // is stored in Redis with the SF token as the key.  This allows us to receover the RS
+    // and Podio tokens on subsequent calls.
     
     var code = request.query.code;
     var token = '';
     var cookie = '';
     var username = request.query.username;
     var password = request.query.password;
+    var RS_REQ =
+	request.path.toString().startsWith ("/documents") ||
+	request.path.toString().startsWith ("/reusable_templates") ||
+	request.path.toString().startsWith ("/sending_requests") ||
+	request.path.toString().startsWith ("/signers");
+    var PODIO_REQ =
+	request.path.toString().startsWith ("/podio") ||
+	request.path.toString().startsWith ("/action") ||
+	request.path.toString().startsWith ("/alert") ||
+	request.path.toString().startsWith ("/app_stores") ||
+	request.path.toString().startsWith ("/app") ||
+	request.path.toString().startsWith ("/batch") ||
+	request.path.toString().startsWith ("/calendar") ||
+	request.path.toString().startsWith ("/conversation") ||
+	request.path.toString().startsWith ("/comment") ||
+	request.path.toString().startsWith ("/contact") ||
+	request.path.toString().startsWith ("/mobile") ||
+	request.path.toString().startsWith ("/email") ||
+	request.path.toString().startsWith ("/embed") ||
+	request.path.toString().startsWith ("/flow") ||
+	request.path.toString().startsWith ("/form") ||
+	request.path.toString().startsWith ("/friend") ||
+	request.path.toString().startsWith ("/grant") ||
+	request.path.toString().startsWith ("/hook") ||
+	request.path.toString().startsWith ("/importer") ||
+	request.path.toString().startsWith ("/integration") ||
+	request.path.toString().startsWith ("/laout") ||
+	request.path.toString().startsWith ("/linked_account") ||
+	request.path.toString().startsWith ("/notification") ||
+	request.path.toString().startsWith ("/org") ||
+	request.path.toString().startsWith ("/question") ||
+	request.path.toString().startsWith ("/rating") ||
+	request.path.toString().startsWith ("/recurrence") ||
+	request.path.toString().startsWith ("/reference") ||
+	request.path.toString().startsWith ("/reminder") ||
+	request.path.toString().startsWith ("/search") ||
+	request.path.toString().startsWith ("/space") ||
+	request.path.toString().startsWith ("/status") ||
+	request.path.toString().startsWith ("/stream") ||
+	request.path.toString().startsWith ("/subscription") ||
+	request.path.toString().startsWith ("/tag") ||
+	request.path.toString().startsWith ("/task") ||
+	request.path.toString().startsWith ("/view") ||
+	request.path.toString().startsWith ("/voting") ||
+	request.path.toString().startsWith ("/widget");
+
+    var req_type = 'ShareFile';
+    
+    if(RS_REQ) {
+	console.log ("RightSignature request detected.");
+	req_type = ('RightSignature');
+    }
+    else if (PODIO_REQ) {
+	console.log ("Podio request detected.");
+	req_type = ('Podio');
+    }
 
     if (fs.existsSync(creds_path)) {
 	var creds_info = require(creds_path);  
@@ -179,9 +390,9 @@ var set_security = function (request, response, my_options, new_path, callback) 
 	var temp_cookies = (request.headers.cookie).split("Services=");
 	if (temp_cookies.length == 2) {
 	    var val_cookie = (temp_cookies[1]).split(':');
-	    if (val_cookie.length == 2) {
-		var val2_cookie = (val_cookie[1]).split('.sf-api.com');
-		if (val2_cookie.length == 2) // string ends in '.sf-api.com' 
+	    if (val_cookie.length == 3) {
+		var val2_cookie = (val_cookie[1]).split('.sharefile.com');
+		if (val2_cookie.length == 2) // string ends in '.sharefile.com' 
 		    cookie = temp_cookies[1];
 	    }
 	}
@@ -208,47 +419,57 @@ var set_security = function (request, response, my_options, new_path, callback) 
 	}
     }
 	
-    if (!code && !token && !cookie && !username && test_user) { // special case where nothing was passed but we have a local test_user creds, this is in the common case in prod; this results in a case B flow
+    if (!code && !token && !cookie && !username && test_user) { // special case where nothing was passed
+	// but we have a local test_user creds, this is in the common case in Prod via Swagger (which
+	// uses a dummy test user account); this results in a case B flow
 	request.query.username = username = test_user;
 	request.query.password = password = test_pw;
 	request.query.subdomain = test_domain;
 	console.log ("Overriding user/pw information with local: " + username + "/" + password); 
     }
     
-    if (!code && !token && !cookie && !username) { // case A
-	console.log("Case A: Initiating login sequence");
+    if (!code && !token && !cookie && !username) { // Case S5
+	console.log("Case S5: Initiating login sequence");
 	redirect (request, response, new_path);
     }
-    else {  // cases B, C, D or E
-	if (cookie) {  // case E
-	    console.log("Case E: Cookie found: "+cookie);
+    else {  // Cases S1-S4
+	if (cookie) {  // Case S1 
+	    console.log("Case S1: Cookie found: "+cookie+ " for this req type: "+req_type);
 	    var temp = cookie.split(":");
 	    cookie = temp[0];
 	    subdomain = temp[1];
-	    my_options.headers = {  // same for all invocations
-		'Host': subdomain,
-		'Cookie': 'SFAPI_AuthID='+cookie
+	    token = temp[2];
+
+	    if (token) { // there is a token in the cookie, ensure we have RS and Podio tokens too
+		get_and_cache_tokens (req_type, token, subdomain, request, my_options, cookie, function (return_options, return_cookie) {
+		    if (RS_REQ || PODIO_REQ) { // RS or Podio token should already be there
+		    }
+		    else { // Must be ShareFile, use the cookie
+			my_options.headers = {  // same for all invocations
+			    'Host': subdomain,
+			    'Cookie': 'SFAPI_AuthID='+cookie
+			}
+			my_options.hostname = subdomain;
+		    }
+		    callback (return_options, return_cookie, null);
+		});
 	    }
-	    my_options.hostname = subdomain;	    
-	    callback (my_options, cookie);
 	}
-	else { // case B, C or D
-	    if (token) {  // case D
+	else { // Cases S2-S4
+	    if (token) {  // Case S2
 		var subdomain = request.headers['host'];
-		console.log("Case D: Token found: "+token);
-		my_options.headers = {  // same for all invocations
-		    'Host': subdomain,
-		    'Authorization': 'Bearer '+token
-		}
-		my_options.hostname = subdomain + '.sf-api.com';
-		callback (my_options, cookie);
+		console.log("Case S2: Token found: "+token);
+
+		get_and_cache_tokens (req_type, token, subdomain, request, my_options, cookie, function (return_options, return_cookie) {
+		    callback (return_options, return_cookie, token);
+		});		    
 	    }
-	    else {  // cases B or C
+	    else {  // Cases S3-S4
 		var subdomain = request.query.subdomain;  // subdomain was selected by user when they logged in or it was passed in with user/pass
-		if (code) { // case C
+		if (code) { // Case S3
 		    console.log("Case C: Code found: "+code);
 		}
-		else { // case B
+		else { // Case S4
 		    console.log("Case B: User: " + username + " and Password: " + password);
 		    if (test_user) { // If we used locally stored creds, don't send a cookie back
 			cookie = 'Cookie not returned on locally used user/pass';
@@ -256,6 +477,8 @@ var set_security = function (request, response, my_options, new_path, callback) 
 		}
 		authenticate(request, function(result) {
 		    var token = JSON.parse(result).access_token;
+
+		    /************************ Begin dev debug *******************/
 		    if (this_host != 'adolfo-ubuntu2') { // exclude the production server, don't save tokens there
 			var token_json = "var token_context = { token: \"" + token + "\"}; exports.token_context = token_context; // This file is automatically generated by sf-authenticate.js for use by sf-client.js for testing.  It should never be checked into Github.  Confidential.";
 			fs.writeFile(env_dir + "sf-token.js", token_json, function(err) {
@@ -264,14 +487,13 @@ var set_security = function (request, response, my_options, new_path, callback) 
 			    }
 			});
 		    }
-		    console.log("Received token via auth flow: "+token);
-		    my_options.headers = {  // same for all invocations
-			'Host': subdomain + '.sf-api.com',
-			'Authorization': 'Bearer '+token,
-			'Content-Type' : 'application/json'
-		    }
-		    my_options.hostname = subdomain + '.sf-api.com';
-		    callback (my_options, cookie);
+		    /************************ End dev debug *******************/
+		    
+		    console.log("Received token via authenticate from code or user/pass flow: "+token);
+
+		    get_and_cache_tokens (req_type, token, subdomain, request, my_options, cookie, function (return_options, return_cookie) {
+			callback (return_options, return_cookie, token);
+		    });		    
 		});
 	    }
 	}
@@ -286,8 +508,8 @@ var clear_cookie = function(response) {
     response.setHeader('Access-Control-Allow-Origin', '*');
 }
 
-var set_cookie = function(response, old_cookie) {
-    console.log("cookie: "+old_cookie);
+var set_cookie = function(response, old_cookie, token) {
+    console.log("cookie: "+old_cookie+", token: "+token);
     var temp_cookies = old_cookie.split(";");
     var new_cookie = '';
     for (i in temp_cookies) {
@@ -296,11 +518,16 @@ var set_cookie = function(response, old_cookie) {
 	// console.log("here "+temp_items[0]+ ":::" + temp_items[1]);
 	if (temp_items[0]=='SFAPI_AuthID') // carry it through
 	    new_cookie = new_cookie + 'Services=' + temp_items[1];
-	else if (temp_items[0]==' domain') // rename the cookie and insert the domain one
-	    new_cookie = new_cookie + ":" + temp_items[1] + '; domain=' + settings.hostname + ';';
-	
+	else if (temp_items[0]==' domain') {  // rename the cookie and insert the domain one
+	    var temp_token = "";
+	    if (token) {
+		console.log ("Adding token " + token + " to the cookie.");
+		temp_token = ":" + token;
+	    }
+	    new_cookie = new_cookie + ":" + temp_items[1] + temp_token + '; domain=' + settings.hostname + ';';
+	}
 	/// break cookie to test
-	// new_cookie = "Services=garbage:blah.sf-api.com; domain:"+settings.hostname;
+	// new_cookie = "Services=garbage:blah.sharefile.com; domain:"+settings.hostname;
     }
     new_cookie += 'path=/;'; // apply to the whole site
     console.log("new cookie: "+new_cookie);

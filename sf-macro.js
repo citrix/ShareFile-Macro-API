@@ -2,12 +2,14 @@
 // Adolfo Rodriguez, Keith Lindsay
 // Trace conventions:
 //  -X-> means a message was received from X where X={C,S,B} representing {client, security server, back-end server} respectively
+//  <-X- means a message was sent to X where X={C,S,B} representing {client, security server, back-end server} respectively
 
 var fs = require('fs');
 var express = require('express');
 var https = require('https');
 var querystring = require('querystring');
 var app = express();
+var os = require("os");
 var files_client = require("./endpoints/sf-files");
 var users_client = require("./endpoints/sf-users");
 var groups_client = require("./endpoints/sf-groups");
@@ -19,6 +21,10 @@ var bodyParser = require('body-parser');
 var crypto = require("crypto");
 var redis = require("redis");
 var beautify = require("js-beautify").js_beautify;
+
+var this_host = os.hostname();
+console.log("Local hostname is " + this_host);
+console.log("sf.macro.js start time: " + new Date().toJSON());
 
 var env_dir = '/home/azureuser/citrix/ShareFile-env/'
 
@@ -45,7 +51,7 @@ if (fs.existsSync(redis_path)) {
 app.use(express.static(__dirname + '/public'));
 
 var my_options = {  // request options
-    hostname: 'zzzz.sf-api.com',
+    hostname: 'zzzz.sharefile.com',
     port: '443',
     path: '',
     method: 'GET',
@@ -142,6 +148,10 @@ function buildNewPath(request_path) {
     return new_path;
 }
 
+app.get('/favicon.ico', function(req, res) {
+    res.sendStatus(204);
+});
+
 app.options('*', function(request, response) {
     console.log("Current time is: " + new Date().toJSON());
     console.log ("-C-> OPTIONS "+request.path+" ["+JSON.stringify(request.headers)+"]");
@@ -176,266 +186,29 @@ app.all('/files*', function(request, response) {
         return;
     }
 
-    sfauth.set_security (request, response, my_options, new_path, function(set_options, cookie) {
+    sfauth.set_security (request, response, my_options, new_path, function(set_options, cookie, token) {
 	if (request.method == 'DELETE')
-            files_client.delete_file (file_array, new_path, request, response, set_options, cookie);
+            files_client.delete_file (file_array, new_path, request, response, set_options, cookie, token);
 	else if (request.method == 'GET')
-	    files_client.get_file (file_array, new_path, request, response, set_options, cookie);
+	{
+	    console.log("this is the token: "+token);
+	    files_client.get_file (file_array, new_path, request, response, set_options, cookie, token);
+	}
 	else if (request.method == 'POST')
-	    files_client.post_file (file_array, new_path, request, response, set_options, cookie);
+	    files_client.post_file (file_array, new_path, request, response, set_options, cookie, token);
     });
 });
 
+// TODO: Currently, it seems, only /files is actually setting the cookie.  This is broken, every call should be setting the cookie so we avoid token exchanges
 
 
-app.all('/podio*', function(request, response){
-
+app.all(['/podio*', '/action*', '/alert*', '/app_store*', '/app*', '/batch*', '/calendar*', '/conversation*', '/comment*', '/contact*', '/mobile*', '/email*', '/embed*', '/flow*', '/form*', '/friend*', '/grant*', '/hook*', '/importer*', '/integration*', '/layout*', '/linked_account*', '/notification*', '/org*', '/question*', '/rating*', '/recurrence*', '/reference*', '/reminder*', '/search*', '/space*', '/status*', '/stream*', '/subscription*', '/tag*', '/task*', '/view*', '/voting*', '/widget*'], function(request, response){
     podio_proxy(request, response);
-
-});
-
-app.all('/action*', function(request, response){
-
-    podio_proxy(request, response);
-
-});
-
-app.all('/alert*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-
-app.all('/app_store*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/app*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/batch*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/calendar*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/conversation*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/comment*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/contact*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/mobile*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-
-app.all('/email*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-
-app.all('/embed*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/flow*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/form*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/friend*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/grant*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/hook*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/importer*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/integration*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/layout*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/linked_account*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-
-app.all('/notification*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/org*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/question*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/rating*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/recurrence*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/reference*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/reminder*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-
-app.all('/search*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-
-app.all('/space*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/status*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/stream*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-
-app.all('/subscription*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-
-app.all('/tag*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/task*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/view*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/voting*', function(request, response){
-
-podio_proxy(request, response);
-
-});
-
-app.all('/widget*', function(request, response){
-
-podio_proxy(request, response);
-
 });
 
 app.all('/object*', function(request, response){
-
-podio_forwarder(request, response, "object", "item");
-
+    podio_forwarder(request, response, "object", "item");
 });
-
 
 
 function podio_proxy(request, response) {
@@ -446,12 +219,11 @@ function podio_proxy(request, response) {
     var file_array = new_path.split("/");
     var entity_name = request.params.entity;
     console.log("Going to Podio");
-    podioauth.set_security (request, response, my_options, new_path, function(set_options, cookie) {
+    sfauth.set_security (request, response, my_options, new_path, function(set_options, cookie) {
 	set_options.method = retrieveMethod(request);
         var body = retrieveBody(request);
         if (body) {
             set_options.headers['Content-Length'] = Buffer.byteLength(body);
-
         }
         var entity = capitalizeFirstLetter(request.url);
         var url_path = entity;
@@ -495,12 +267,11 @@ function podio_forwarder(request, response, orig_entity, new_entity) {
     request.path = new_path;
     var file_array = new_path.split("/");
     console.log("Going to Podio");
-    podioauth.set_security (request, response, my_options, new_path, function(set_options, cookie) {
+    sfauth.set_security (request, response, my_options, new_path, function(set_options, cookie) {
         set_options.method = retrieveMethod(request);
         var body = retrieveBody(request);
         if (body) {
             set_options.headers['Content-Length'] = Buffer.byteLength(body);
-
         }
 	var request_url = request.url.replace(orig_entity, new_entity);
 	console.log(request_url);
@@ -738,6 +509,9 @@ app.all('/*/:id', function(req, res) {
 
 app.all('/*', function(req, res) {
     console.log("------/*----------"+getDateTime()+"-------------");
+    console.log("Current time is: " + new Date().toJSON());
+    console.log ("-C-> "+req.method+" "+req.url);
+    
     sfauth.set_security (req, res, my_options, req.url, function(set_options, cookie) {
         set_options.method = retrieveMethod(req);
         var body = retrieveBody(req);
@@ -745,10 +519,16 @@ app.all('/*', function(req, res) {
             set_options.headers['Content-Length'] = Buffer.byteLength(body);
 
         }
-        var entity = capitalizeFirstLetter(req.url);
-        var url_path = '/sf/v3' + entity;
+	var entity = capitalizeFirstLetter(req.url);
+	var url_path;
+
+	if (set_options.hostname == 'api.rightsignature.com') // it's RightSignature
+	    url_path = '/public/v1' + entity;
+	else // it's ShareFile
+            url_path = '/sf/v3' + entity;
+	
         console.log(url_path);
-        set_options.path = url_path
+        set_options.path = url_path;
         console.log("<-B-: " + JSON.stringify(set_options));
         var resultString = "";
         var api_request = https.request(set_options, function(api_response) {
