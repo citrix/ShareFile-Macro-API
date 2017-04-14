@@ -236,16 +236,16 @@ function request_callback(api_response) {
 
 
 function rs_proxy(request, response) {
-    console.log ("-C-> "+req.method+" "+req.url);
+    console.log ("-C-> "+request.method+" "+request.url);
     elastic.WriteLog(1,"C>",request,"Content Request: " + request.path);
-    sfauth.set_security (req, res, my_options, req.url, function(set_options, cookie) {
-        set_options.method = retrieveMethod(req);
-        var body = retrieveBody(req);
+    sfauth.set_security (request, response, my_options, request.url, function(set_options, cookie) {
+        set_options.method = retrieveMethod(request);
+        var body = retrieveBody(request);
         if (body) {
             set_options.headers['Content-Length'] = Buffer.byteLength(body);
 
         }
-	var entity = capitalizeFirstLetter(req.url);
+	var entity = capitalizeFirstLetter(request.url);
 	var url_path;
 
 	if (set_options.hostname == 'api.rightsignature.com') // it's RightSignature
