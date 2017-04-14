@@ -121,6 +121,7 @@ var redirect = function(req, resp,  new_path) {
         my_query +='hashcode='+hashcode;	
     var parameters = "https://secure.sharefile.com/oauth/authorize?response_type=code&client_id="+client_id+"&redirect_uri="+redirect_url+":"+settings.port+new_path+my_query; 
     console.log ("<-C- Redirect to " + parameters);
+    elastic.WriteLog(1,"<C",req,"Redirect to: " + parameters);
     resp.redirect(parameters);
 };
 
@@ -153,7 +154,7 @@ var authenticate = function(req, callback) { // Once the request code comes back
     }
 
     console.log("<-S- " + JSON.stringify(get_token_options) + get_token_data);
-    
+    elastic.WriteLog(1,"<S",req,"Token Information: " + JSON.stringify(get_token_options) + get_token_data);
     var request = https.request(get_token_options, function(response) {
 	var resultString = '';
 	response.on('data', function (chunk) {
@@ -161,6 +162,7 @@ var authenticate = function(req, callback) { // Once the request code comes back
 	});
 	response.on('end', function (chunk) {
 	    console.log("-S-> auth result: " + resultString);
+        elastic.WriteLog(1,"S>",req,"Auth Result: " + resultString);
 	    callback(resultString);
 	});
     });
@@ -189,7 +191,7 @@ var RS_get_token = function(token, subdomain, exchange_options, req, callback) {
 	    }
 	    get_RS_token_options.hostname = subdomain + '.sharefile.com';
 	    console.log("<-S- " + JSON.stringify(get_RS_token_options));
-    
+        elastic.WriteLog(1,"<S",req,"RS Token Options: " +  JSON.stringify(get_RS_token_options));
 	    var request = https.request(get_RS_token_options, function(response) {
 		var resultString = '';
 		response.on('data', function (chunk) {
@@ -197,6 +199,7 @@ var RS_get_token = function(token, subdomain, exchange_options, req, callback) {
 		});
 		response.on('end', function (chunk) {
 		    console.log("-S-> ["+response.statusCode+"] RS auth result: " + resultString);
+            elastic.WriteLog(1,"S>",req,"["+response.statusCode+"] RS auth result: " + resultString);
 		    var RS_token = JSON.parse(resultString).Token;
 		    redclient.set(token+"-RS", RS_token);   // remember the association between this SF
 		    // token and this RS token
@@ -227,7 +230,8 @@ var Podio_get_token = function(token, subdomain, exchange_options, req, callback
 	    }
 	    get_Podio_token_options.hostname = subdomain + '.sharefile.com';
 	    console.log("<-S- " + JSON.stringify(get_Podio_token_options));
-    
+        elastic.WriteLog(1,"<S",request,"Podio Token Options: " + JSON.stringify(get_Podio_token_options));
+
 	    var request = https.request(get_Podio_token_options, function(response) {
 		var resultString = '';
 		response.on('data', function (chunk) {
@@ -235,6 +239,7 @@ var Podio_get_token = function(token, subdomain, exchange_options, req, callback
 		});
 		response.on('end', function (chunk) {
 		    console.log("-S-> ["+response.statusCode+"] RS auth result: " + resultString);
+            elastic.WriteLog(1,"S>",req,"["+response.statusCode+"] Podio auth result: " + resultString);
 		    var Podio_code = JSON.parse(resultString).Code;
 		    var Apicp = JSON.parse(resultString).ApiCp;
 		    var Appcp = JSON.parse(resultString).AppCp;
