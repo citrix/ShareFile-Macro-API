@@ -245,7 +245,8 @@ function rs_proxy(request, response) {
             set_options.headers['Content-Length'] = Buffer.byteLength(body);
 
         }
-	var entity = capitalizeFirstLetter(request.url);
+    var update_path = request.url.replace("/signature", "");
+	var entity = capitalizeFirstLetter(update_path);
 	var url_path;
 
 	if (set_options.hostname == 'api.rightsignature.com') // it's RightSignature
