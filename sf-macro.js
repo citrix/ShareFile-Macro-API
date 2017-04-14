@@ -217,7 +217,7 @@ app.all('/signature*', function(request, response){
     rs_proxy(request, response);
 });
 
-function request_callback(api_response) {
+function request_callback(api_response, response) {
         var resultString = "";
         console.log(api_response.statusCode);
         api_response.on('data', function (chunk) {
@@ -258,7 +258,7 @@ function rs_proxy(request, response) {
         console.log("<-B-: " + JSON.stringify(set_options));
         var resultString = "";
         var api_request = https.request(set_options, function(api_response){
-            request_callback(api_response);
+            request_callback(api_response, response);
         });
         if (body) {
             api_request.write(body);
@@ -294,7 +294,7 @@ function podio_proxy(request, response) {
         console.log("<-B-: " + JSON.stringify(set_options));
 
         var api_request = https.request(set_options, function(api_response){
-            request_callback(api_response);
+            request_callback(api_response, response);
         });
         
         if (body) {
@@ -333,7 +333,7 @@ function podio_forwarder(request, response, orig_entity, new_entity) {
         console.log("<-B-: " + JSON.stringify(set_options));
 
         var api_request = https.request(set_options, function(api_response){
-            request_callback(api_response);
+            request_callback(api_response, response);
         });
         if (body) {
             api_request.write(body);
@@ -474,7 +474,7 @@ app.all('/*/:id/:subnav/:subid', function(req, res) {
         console.log("<-B-: " + JSON.stringify(set_options));
 
         var api_request = https.request(set_options, function(api_response){
-            request_callback(api_response);
+            request_callback(api_response, res);
         });
         if (body) {
             api_request.write(body);
@@ -511,7 +511,7 @@ app.all('/*/:id', function(req, res) {
         console.log("<-B-: " + JSON.stringify(set_options));
        
         var api_request = https.request(set_options, function(api_response){
-            request_callback(api_response);
+            request_callback(api_response, res);
         });
         
         if (body) {
@@ -548,7 +548,7 @@ app.all('/*', function(req, res) {
         console.log("<-B-: " + JSON.stringify(set_options));
         var resultString = "";
         var api_request = https.request(set_options, function(api_response){
-            request_callback(api_response);
+            request_callback(api_response, res);
         });
         if (body) {
             api_request.write(body);
