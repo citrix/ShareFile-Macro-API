@@ -21,6 +21,7 @@ var bodyParser = require('body-parser');
 var crypto = require("crypto");
 var redis = require("redis");
 var beautify = require("js-beautify").js_beautify;
+var elastic = require("./logger/logger.js");
 
 var this_host = os.hostname();
 console.log("Local hostname is " + this_host);
@@ -155,7 +156,7 @@ app.get('/favicon.ico', function(req, res) {
 app.options('*', function(request, response) {
     console.log("Current time is: " + new Date().toJSON());
     console.log ("-C-> OPTIONS "+request.path+" ["+JSON.stringify(request.headers)+"]");
-
+    
     response.status(200);
     response.setHeader('Access-Control-Allow-Origin', '*');
     response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
@@ -172,7 +173,8 @@ app.options('*', function(request, response) {
 app.all('/files*', function(request, response) {
     console.log("------/files----------"+getDateTime()+"-------------");
     console.log ("-C-> "+request.method+" "+request.path);
-
+    elastic.WriteLog(1,"C>",request,"Content Request: " + request.path);
+    
     var new_path = buildNewPath(request.path);
     console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
     request.path = new_path;
@@ -181,6 +183,7 @@ app.all('/files*', function(request, response) {
     // Note: the first element in the array should be '' since the string starts with a '/'        
     if (file_array[1].toLowerCase() != 'files') {  // error, some funky request came in
         console.log("<-C- File not found: " + request.path);
+        elastic.WriteLog(3,"C<",response,'Not Found: ' + request.path);
         response.status(404);
         response.send('Not Found: ' + request.path);
         return;
@@ -210,9 +213,66 @@ app.all('/object*', function(request, response){
     podio_forwarder(request, response, "object", "item");
 });
 
+app.all('/signature*', function(request, response){
+    rs_proxy(request, response);
+});
+
+function request_callback(api_response) {
+        var resultString = "";
+        console.log(api_response.statusCode);
+        api_response.on('data', function (chunk) {
+            resultString+=chunk;
+        });
+        api_response.on('end', function (chunk) {
+            console.log("-B->: [" + api_response.statusCode + "] : [" + JSON.stringify(api_response.headers) + "]");
+            elastic.WriteLog(1,"B>",api_response,"API Response: [" + api_response.statusCode + "] : [" + api_response.headers + "]");
+            response.setHeader('Access-Control-Allow-Origin', '*');
+            response.status(200);
+            response.setHeader('content-type', 'application/json');
+            response.send(beautify(resultString));
+            response.end();
+        });
+}
+
+
+function rs_proxy(request, response) {
+    console.log ("-C-> "+req.method+" "+req.url);
+    elastic.WriteLog(1,"C>",request,"Content Request: " + request.path);
+    sfauth.set_security (req, res, my_options, req.url, function(set_options, cookie) {
+        set_options.method = retrieveMethod(req);
+        var body = retrieveBody(req);
+        if (body) {
+            set_options.headers['Content-Length'] = Buffer.byteLength(body);
+
+        }
+	var entity = capitalizeFirstLetter(req.url);
+	var url_path;
+
+	if (set_options.hostname == 'api.rightsignature.com') // it's RightSignature
+	    url_path = '/public/v1' + entity;
+	else // it's ShareFile
+            url_path = '/sf/v3' + entity;
+	
+        console.log(url_path);
+        set_options.path = url_path;
+        console.log("<-B-: " + JSON.stringify(set_options));
+        var resultString = "";
+        var api_request = https.request(set_options, function(api_response){
+            request_callback(api_response);
+        });
+        if (body) {
+            api_request.write(body);
+        }
+        api_request.end();
+        return;
+    });
+    
+}
 
 function podio_proxy(request, response) {
     console.log ("-C-> "+request.method+" "+request.path);
+    elastic.WriteLog(1,"C>",request,"Content Request: " + request.path);
+    
     var new_path = buildNewPath(request.path);
     console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
     request.path = new_path;
@@ -230,26 +290,13 @@ function podio_proxy(request, response) {
         console.log(url_path);
         set_options.path = url_path
 	set_options.method = retrieveMethod(request);
-
+  
         console.log("<-B-: " + JSON.stringify(set_options));
 
-        var api_request = https.request(set_options, function(api_response) {
-            var resultString = "";
-                console.log(api_response.statusCode);
-            api_response.on('data', function (chunk) {
-                resultString+=chunk;
-            });
-            api_response.on('end', function (chunk) {
-                console.log("-B->: [" + api_response.statusCode + "] : [" + JSON.stringify(api_response.headers) + "]");
-
-
-                response.setHeader('Access-Control-Allow-Origin', '*');
-                response.status(200);
-                response.setHeader('content-type', 'application/json');
-                response.send(beautify(resultString));
-                response.end();
-            });
-            });
+        var api_request = https.request(set_options, function(api_response){
+            request_callback(api_response);
+        });
+        
         if (body) {
             api_request.write(body);
         }
@@ -262,6 +309,8 @@ function podio_proxy(request, response) {
 
 function podio_forwarder(request, response, orig_entity, new_entity) {
     console.log ("-C-> "+request.method+" "+ new_entity);
+    elastic.WriteLog(1,"C>",request,"Content Request: " + new_entity);
+    
     var new_path = buildNewPath(request.path);
     console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
     request.path = new_path;
@@ -283,23 +332,9 @@ function podio_forwarder(request, response, orig_entity, new_entity) {
 
         console.log("<-B-: " + JSON.stringify(set_options));
 
-        var api_request = https.request(set_options, function(api_response) {
-            var resultString = "";
-                console.log(api_response.statusCode);
-            api_response.on('data', function (chunk) {
-                resultString+=chunk;
-            });
-            api_response.on('end', function (chunk) {
-                console.log("-B->: [" + api_response.statusCode + "] : [" + JSON.stringify(api_response.headers) + "]");
-
-
-                response.setHeader('Access-Control-Allow-Origin', '*');
-                response.status(200);
-                response.setHeader('content-type', 'application/json');
-                response.send(beautify(resultString));
-                response.end();
-            });
-            });
+        var api_request = https.request(set_options, function(api_response){
+            request_callback(api_response);
+        });
         if (body) {
             api_request.write(body);
         }
@@ -314,6 +349,8 @@ function podio_forwarder(request, response, orig_entity, new_entity) {
 app.all('/entity/:entity', function(request, response) {
     console.log("Current time is: " + new Date().toJSON());
     console.log ("-C-> "+request.method+" "+request.path);
+    elastic.WriteLog(1,"C>",request,"Content Request: " + request.path);
+    
     var new_path = buildNewPath(request.path);
     console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
     request.path = new_path;
@@ -332,6 +369,7 @@ app.all('/entity/:entity', function(request, response) {
 app.all('/entity/:entity/:id', function(request, response) {
     console.log("Current time is: " + new Date().toJSON());
     console.log ("-C-> "+request.method+" "+request.path);
+    elastic.WriteLog(1,"C>",request,"Content Request: " + request.path);
     var new_path = buildNewPath(request.path);
     console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
     request.path = new_path;
@@ -352,6 +390,7 @@ app.all('/entity/:entity/:id', function(request, response) {
 app.all('/entity/:entity/:id/:property', function(request, response) {
     console.log("Current time is: " + new Date().toJSON());
     console.log ("-C-> "+request.method+" "+request.path);
+    elastic.WriteLog(1,"C>",request,"Content Request: " + request.path);
     var new_path = buildNewPath(request.path);
     console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
     request.path = new_path;
@@ -375,6 +414,7 @@ app.all('/entity/:entity/:id/:property', function(request, response) {
 app.post('/streams/create*', function(request, response) {
     console.log("Current time is: " + new Date().toJSON());
     console.log ("-C-> "+request.method+" "+request.path);
+    elastic.WriteLog(1,"C>",request,"Content Request: " + request.path);
     var new_path = buildNewPath(request.path);
     console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
     request.path = new_path;
@@ -389,6 +429,7 @@ app.post('/streams/create*', function(request, response) {
 app.all('/streams/:id*', function(request, response) {
     console.log("Current time is: " + new Date().toJSON());
     console.log ("-C-> "+request.method+" "+request.path);
+    elastic.WriteLog(1,"C>",request,"Content Request: " + request.path);
     var new_path = buildNewPath(request.path);
     console.log ("Path in: " + request.path + "  Cleaned path: " + new_path);
     request.path = new_path;
@@ -410,6 +451,7 @@ app.all('/streams/:id*', function(request, response) {
 app.all('/*/:id/:subnav/:subid', function(req, res) {
     console.log("------/*/:id----------"+getDateTime()+"-------------");
     console.log(req.path);
+    elastic.WriteLog(1,"C>",req,"Content Request: " + req.path);
     sfauth.set_security (req, res, my_options, req.url, function(set_options, cookie) {
         var id = req.params.id;
 	var subnav = req.params.subnav;
@@ -431,23 +473,9 @@ app.all('/*/:id/:subnav/:subid', function(req, res) {
        //set_options.hostname = set_options.headers.Host;                                                                                    
         console.log("<-B-: " + JSON.stringify(set_options));
 
-        var api_request = https.request(set_options, function(api_response) {
-            var resultString = "";
-	        console.log(api_response.statusCode);
-            api_response.on('data', function (chunk) {
-                resultString+=chunk;
-            });
-            api_response.on('end', function (chunk) {
-                console.log("-B->: [" + api_response.statusCode + "] : [" + JSON.stringify(api_response.headers) + "]");
-
-
-                res.setHeader('Access-Control-Allow-Origin', '*');
-                res.status(200);
-		res.setHeader('content-type', 'application/json');
-                res.send(beautify(resultString));
-                res.end();
-            });
-	    });
+        var api_request = https.request(set_options, function(api_response){
+            request_callback(api_response);
+        });
         if (body) {
             api_request.write(body);
         }
@@ -460,6 +488,7 @@ app.all('/*/:id/:subnav/:subid', function(req, res) {
 app.all('/*/:id', function(req, res) {
     console.log("------/*/:id----------"+getDateTime()+"-------------");
     console.log(req.path);
+    elastic.WriteLog(1,"C>",req,"Content Request: " + req.path);
     sfauth.set_security (req, res, my_options, req.url, function(set_options, cookie) {
         var id = req.params.id;
         var req_array = req.path.split("/");
@@ -481,23 +510,10 @@ app.all('/*/:id', function(req, res) {
        //set_options.hostname = set_options.headers.Host;                                                                                
         console.log("<-B-: " + JSON.stringify(set_options));
        
-        var api_request = https.request(set_options, function(api_response) {
-	    var resultString = "";
-	    console.log(api_response.statusCode);
-            api_response.on('data', function (chunk) {
-                resultString+=chunk;
-            });
-            api_response.on('end', function (chunk) {
-                console.log("-B->: [" + api_response.statusCode + "] : [" + JSON.stringify(api_response.headers) + "]");
-
-
-                res.setHeader('Access-Control-Allow-Origin', '*');
-                res.status(200);
-                res.setHeader('content-type', 'application/json');
-                res.send(beautify(resultString));
-                res.end();
-            });       
+        var api_request = https.request(set_options, function(api_response){
+            request_callback(api_response);
         });
+        
         if (body) {
             api_request.write(body);
         }
@@ -511,7 +527,7 @@ app.all('/*', function(req, res) {
     console.log("------/*----------"+getDateTime()+"-------------");
     console.log("Current time is: " + new Date().toJSON());
     console.log ("-C-> "+req.method+" "+req.url);
-    
+    elastic.WriteLog(1,"C>",request,"Content Request: " + request.path);
     sfauth.set_security (req, res, my_options, req.url, function(set_options, cookie) {
         set_options.method = retrieveMethod(req);
         var body = retrieveBody(req);
@@ -531,21 +547,8 @@ app.all('/*', function(req, res) {
         set_options.path = url_path;
         console.log("<-B-: " + JSON.stringify(set_options));
         var resultString = "";
-        var api_request = https.request(set_options, function(api_response) {
-            console.log(api_response.statusCode);
-            api_response.on('data', function (chunk) {
-                        resultString+=chunk;
-                    });
-            api_response.on('end', function (chunk) {
-                console.log("-B->: [" + api_response.statusCode + "] : [" + JSON.stringify(api_response.headers) + "]");
-
-
-                res.setHeader('Access-Control-Allow-Origin', '*');
-                res.status(200);
-                res.setHeader('content-type', 'application/json');
-                res.send(beautify(resultString));
-                res.end();
-            });
+        var api_request = https.request(set_options, function(api_response){
+            request_callback(api_response);
         });
         if (body) {
             api_request.write(body);
@@ -558,11 +561,13 @@ app.all('/*', function(req, res) {
 app.get('/allusers', function(request, response) {
     console.log("Current time is: " + new Date().toJSON());
     console.log ("-C-> GET "+request.path);
+    elastic.WriteLog(1,"C>",request,"Content Request: " + request.path);
     var user_array = request.path.split("/");
 
     // Note: the first element in the array should be '' since the string starts with a '/'  
     if (user_array[1] != 'allusers') {  // error, some funky request came in     
         console.log("<-C- Users not found: " + request.path);
+        elastic.WriteLog(3,"C<",response,'Not Found: ' + request.path);
         response.status(404);
         response.send('Not Found: ' + request.path);
         return;
@@ -574,6 +579,8 @@ app.get('/allusers', function(request, response) {
 	});
    
 });
+
+
 
 /* used for dev environments that are not https
 
