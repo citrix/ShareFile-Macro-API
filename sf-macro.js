@@ -527,7 +527,7 @@ app.all('/*', function(req, res) {
     console.log("------/*----------"+getDateTime()+"-------------");
     console.log("Current time is: " + new Date().toJSON());
     console.log ("-C-> "+req.method+" "+req.url);
-    elastic.WriteLog(1,"C>",request,"Content Request: " + request.path);
+    elastic.WriteLog(1,"C>",req,"Content Request: " + req.path);
     sfauth.set_security (req, res, my_options, req.url, function(set_options, cookie) {
         set_options.method = retrieveMethod(req);
         var body = retrieveBody(req);
