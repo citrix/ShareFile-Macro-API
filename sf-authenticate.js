@@ -173,12 +173,17 @@ var authenticate = function(req, callback) { // Once the request code comes back
 var RS_get_token = function(token, subdomain, exchange_options, req, callback) { // Once the request code comes back in or we have a user/pass, this function will invoke the security server again to retrieve the RS JWT token
 
     console.log("Checking redis for token: "+token);
+    var rs_host = "";
+    if (subdomain.includes(".sharefile.com") )
+        rs_host = subdomain;
+    else
+        rs_host = subdomain+".sharefile.com";
     // see if we have this token cached already
     redclient.get(token+"-RS", function(err, RS_token) {
 	if (!RS_token) { // we don't have an associated token already
 	    console.log("Converting SF token " + token + " to RS token");
 	    get_RS_token_options.headers = {  // same for all invocations
-		'Host': subdomain + '.sharefile.com',
+		'Host': rs_host,
 		'Authorization': 'Bearer '+token,
 		'Content-Type' : 'application/json'
 	    }
