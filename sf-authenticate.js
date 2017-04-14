@@ -129,8 +129,10 @@ var authenticate = function(req, callback) { // Once the request code comes back
     var username = req.query.username;
     var password = req.query.password;
     var subdomain = req.query.subdomain;
-
-    get_token_options.hostname = subdomain+".sharefile.com";
+    if (subdomain.includes(".sharefile.com") )
+        get_token_options.hostname = subdomain;
+    else
+        get_token_options.hostname = subdomain+".sharefile.com";
 
     var get_token_data;
     if (code) {
