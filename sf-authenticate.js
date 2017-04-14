@@ -326,6 +326,7 @@ var set_security = function (request, response, my_options, new_path, callback) 
     var username = request.query.username;
     var password = request.query.password;
     var RS_REQ =
+    request.path.toString().startsWith ("/signature") ||
 	request.path.toString().startsWith ("/documents") ||
 	request.path.toString().startsWith ("/reusable_templates") ||
 	request.path.toString().startsWith ("/sending_requests") ||
