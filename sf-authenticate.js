@@ -121,7 +121,7 @@ var redirect = function(req, resp,  new_path) {
         my_query +='hashcode='+hashcode;	
     var parameters = "https://secure.sharefile.com/oauth/authorize?response_type=code&client_id="+client_id+"&redirect_uri="+redirect_url+":"+settings.port+new_path+my_query; 
     console.log ("<-C- Redirect to " + parameters);
-    elastic.WriteLog(1,"<C",req,"Redirect to: " + parameters);
+    elastic.WriteLog(1,"C>",req,"Redirect to: " + parameters);
     resp.redirect(parameters);
 };
 
@@ -154,7 +154,7 @@ var authenticate = function(req, callback) { // Once the request code comes back
     }
 
     console.log("<-S- " + JSON.stringify(get_token_options) + get_token_data);
-    elastic.WriteLog(1,"<S",req,"Token Information: " + JSON.stringify(get_token_options) + get_token_data);
+    elastic.WriteLog(1,"S<",req,"Token Information: " + JSON.stringify(get_token_options) + get_token_data);
     var request = https.request(get_token_options, function(response) {
 	var resultString = '';
 	response.on('data', function (chunk) {
@@ -191,7 +191,7 @@ var RS_get_token = function(token, subdomain, exchange_options, req, callback) {
 	    }
 	    get_RS_token_options.hostname = subdomain + '.sharefile.com';
 	    console.log("<-S- " + JSON.stringify(get_RS_token_options));
-        elastic.WriteLog(1,"<S",req,"RS Token Options: " +  JSON.stringify(get_RS_token_options));
+        elastic.WriteLog(1,"S<",req,"RS Token Options: " +  JSON.stringify(get_RS_token_options));
 	    var request = https.request(get_RS_token_options, function(response) {
 		var resultString = '';
 		response.on('data', function (chunk) {
@@ -230,7 +230,7 @@ var Podio_get_token = function(token, subdomain, exchange_options, req, callback
 	    }
 	    get_Podio_token_options.hostname = subdomain + '.sharefile.com';
 	    console.log("<-S- " + JSON.stringify(get_Podio_token_options));
-        elastic.WriteLog(1,"<S",request,"Podio Token Options: " + JSON.stringify(get_Podio_token_options));
+        elastic.WriteLog(1,"S<",request,"Podio Token Options: " + JSON.stringify(get_Podio_token_options));
 
 	    var request = https.request(get_Podio_token_options, function(response) {
 		var resultString = '';
