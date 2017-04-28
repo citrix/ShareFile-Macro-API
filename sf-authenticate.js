@@ -14,7 +14,7 @@ var this_host = os.hostname();
 console.log("Local hostname is " + this_host);
 console.log("sf.authenticate.js start time: " + new Date().toJSON());
 var env_dir = '/home/azureuser/citrix/ShareFile-env/';
-
+var elastic = require("./logger/logger.js");
 var settings_path = env_dir + 'sf-settings.js';
 var settings;
 if (fs.existsSync(settings_path)) {
